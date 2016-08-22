@@ -4,7 +4,8 @@
   "main": "auth0-element.html",
   "dependencies": {
     "polymer": "Polymer/polymer#^1.4.0",
-    "auth0.js": "^7.1.0"
+    "auth0.js": "^7.1.0",
+    "auth0-lock": "^10.2.1"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
