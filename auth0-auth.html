@@ -1,0 +1,131 @@
+<link rel="import" href="auth0.html">
+<link rel="import" href="auth0-lock.html">
+
+<dom-module id="auth0-auth">
+
+  <template>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'auth0-auth',
+
+      properties: {
+          clientId: {
+            type: String
+          },
+          domain: {
+            type: String
+          },
+          scope: {
+            type: String
+          },
+          logoutRedirectTo: {
+            type: String
+          },
+          userProfile: {
+            readOnly: true,
+            notify: true,
+            type: Object,
+            value: function() {return {};}
+          },
+        /**
+         * A pointer to the auth0 instance being used by the element.
+         */
+        auth0: {
+          type: Object,
+          readOnly: true
+        },
+        userToken: {
+          type: String,
+          readOnly: true,
+          value: 'userToken'
+        },
+        idToken: {
+          type: String,
+          readOnly: true,
+          notify: true
+        }
+      },
+      ready: function() {
+        // instantiate Lock
+        var lock = new Auth0Lock(this.clientId, this.domain, {
+              auth: {
+                params: {
+                  scope: this.scope
+                }
+              },
+              closable: false
+            });
+        this._setAuth0(new Auth0({
+            domain:       this.domain,
+            clientID:     this.clientId
+          })
+        );
+
+        // sso requires redirect mode, hence we need to parse
+        // the response from Auth0 that comes on location hash
+        var hash = this.auth0.parseHash(window.location.hash);
+        if (hash && hash.idToken) {
+          // the user came back from the login (either SSO or regular login),
+          // save the token
+          localStorage.setItem(this.userToken, hash.idToken);
+          this._setIdToken(hash.idToken);
+          // redirect to "targetUrl" if any
+          //window.location.href = hash.state || '#home';
+          this._getProfile(hash.idToken);
+          return;
+        }
+        // Get the user token if we've saved it in localStorage before
+        var idToken = localStorage.getItem(this.userToken);
+        if (idToken) {
+          // If there's a token, just redirect to "targetUrl" if any
+          //window.location.href = '#/leave-types';
+          this._getProfile(idToken);
+          return;
+        }
+
+        // user is not logged, check whether there is an SSO session or not
+        this.auth0.getSSOData(function(err, data) {
+          if (!err && data.sso) {
+            // there is! redirect to Auth0 for SSO
+            this.auth0.signin({
+              // If the user wanted to go to some other URL, you can track it with `state`
+              state: this.getQueryParameter('targetUrl'),
+              callbackOnLocationHash: true,
+              scope: this.scope
+            });
+          } else {
+            // regular login
+            lock.show();
+
+          }
+        }.bind(this));
+      },
+
+      _getProfile: function(idToken) {
+        this.auth0.getProfile(idToken, function (err, profile) {
+          if (err) {
+            return alert('There was an error getting the profile: ' + err.message);
+          }
+          this._setUserProfile(profile);
+        }.bind(this));
+      },
+
+      getQueryParameter: function(name) {
+        name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+        var regex = new RegExp("[\\?&]" + name + "=([^&]*)"),
+          results = regex.exec(location.search);
+        return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+      },
+
+      signOut: function() {
+        localStorage.removeItem(this.userToken);
+        window.location.href = 'https://' + this.domain + '/v2/logout?returnTo=' + this.logoutRedirectTo;
+
+      }
+    });
+
+  </script>
+</dom-module>
