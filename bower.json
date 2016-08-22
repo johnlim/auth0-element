@@ -1,6 +1,15 @@
 {
   "name": "auth0-element",
+  "version": "0.0.1",
+  "authors": [
+    "John Lim Ding Wei"
+  ],
   "description": "An element that makes it easy to declaratively use auth0",
+  "keywords": [
+    "web-components",
+    "polymer",
+    "auth0"
+  ],
   "main": "auth0-element.html",
   "dependencies": {
     "polymer": "Polymer/polymer#^1.4.0",
