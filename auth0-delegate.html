@@ -1,0 +1,56 @@
+<link rel="import" href="auth0.html">
+
+<dom-module id="auth0-delegate">
+
+  <template>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'auth0-delegate',
+
+      properties: {
+        idToken: {
+          type: String
+        },
+        options: {
+          type: Object
+        },
+        clientId: {
+          type: String
+        },
+        delegateToken: {
+          type: String,
+          readOnly: true,
+          notify: true,
+          value: ''
+        }
+      },
+
+      observers: [
+        '_getDelegateToken(domain, clientId, idToken, options)'
+      ],
+
+      _getDelegateToken: function() {
+        var auth0 = new Auth0({
+            domain:       this.domain,
+            clientID:     this.clientId
+          });
+        var options = {
+          id_token : this.idToken,
+          api : this.options.api,
+          scope : this.options.scope,
+          target: this.clientId
+        };
+        // Make a call to the Auth0 '/delegate'
+        auth0.getDelegationToken(options, function(err, result) {
+          if(!err) {
+            this._setDelegateToken(result.id_token);
+          }
+        }.bind(this));
+      }
+    });
+
+  </script>
+</dom-module>
