@@ -120,10 +120,10 @@
         return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
       },
 
-      signOut: function() {
+      signOut: function(clientId) {
+        var appLevelSignOut = clientId ? ('&client_id=' + clientId) : '';
         localStorage.removeItem(this.userToken);
-        window.location.href = 'https://' + this.domain + '/v2/logout?returnTo=' + this.logoutRedirectTo;
-
+        window.location.href = 'https://' + this.domain + '/v2/logout?returnTo=' + this.logoutRedirectTo + appLevelSignOut;
       }
     });
 
