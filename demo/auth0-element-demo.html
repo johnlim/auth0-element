@@ -1,0 +1,96 @@
+<link rel="import" href="../../polymer/polymer.html">
+<link rel="import" href="../../polymerfire/firebase-app.html">
+<link rel="import" href="../../polymerfire/firebase-auth.html">
+<link rel="import" href="../auth0-auth.html">
+<link rel="import" href="../auth0-delegate.html">
+<link rel="import" href="../../paper-button/paper-button.html">
+
+<dom-module id="auth0-element-demo">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+
+    <auth0-auth
+            id="auth0"
+            client-id="LP1BxaYQm2NQTZG64MQqHmI2xxDiRMaf"
+            domain="johnlim.au.auth0.com"
+            scope="openid name picture"
+            logout-redirect-to="http://localhost:8080/components/auth0-element/demo/"
+            user-profile={{user}}
+            id-token="{{idToken}}">
+    </auth0-auth>
+
+    <auth0-delegate
+            client-id="LP1BxaYQm2NQTZG64MQqHmI2xxDiRMaf"
+            domain="johnlim.au.auth0.com"
+            options="{{firebaseDelegate}}"
+            id-token="[[idToken]]"
+            delegate-token="{{firebaseDelegateToken}}">
+    </auth0-delegate>
+
+    <firebase-app auth-domain="auth0-element-demo.firebaseio.com"
+                  database-url="https://auth0-element-demo.firebaseio.com/"
+                  api-key="AIzaSyAT3zy3a4hz0sXr3dNGVK6NKVC7tTMys6c"
+                  name="auth0-element-demo">
+    </firebase-app>
+
+    <firebase-auth id="firebase"
+                   user="{{firebaseUser}}"
+                   on-error="_handleError"
+                   app-name="auth0-element-demo">
+    </firebase-auth>
+    <paper-button id="signout" raised on-tap="signout">Sign out</paper-button>
+    <h3>UID: {{firebaseUser.uid}}</h3>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'auth0-element-demo',
+
+      properties: {
+        user: {
+          type: Object,
+          value: function(){return{};}
+        },
+        idToken: {
+          type: String,
+        },
+        firebaseDelegate: {
+          value: function() {
+            var firebase = {
+              api : 'firebase',
+              scope : 'openid name email displayName'
+            };
+            return firebase;
+          }
+        },
+
+        firebaseDelegateToken: {
+          type: String,
+          value: '',
+          observer: 'signIntoFirebase'
+        },
+        firebaseUser: {
+          value: null
+        }
+      },
+      signIntoFirebase: function(token) {
+        if(token) {
+          this.$.firebase.signInWithCustomToken(token).catch(function(error) {
+            console.log(error);
+          });
+        }
+      },
+      signout: function() {
+        this.$.firebase.signOut();
+        this.$.auth0.signOut('LP1BxaYQm2NQTZG64MQqHmI2xxDiRMaf');
+      }
+
+    });
+  </script>
+</dom-module>
+
