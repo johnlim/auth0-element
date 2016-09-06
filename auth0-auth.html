@@ -27,8 +27,7 @@
           userProfile: {
             readOnly: true,
             notify: true,
-            type: Object,
-            value: function() {return {};}
+            type: Object
           },
         /**
          * A pointer to the auth0 instance being used by the element.
@@ -37,10 +36,10 @@
           type: Object,
           readOnly: true
         },
-        userToken: {
+        localStorageKey: {
           type: String,
           readOnly: true,
-          value: 'userToken'
+          computed: '_computeKey(userProfile)',
         },
         idToken: {
           type: String,
@@ -48,6 +47,9 @@
           notify: true
         }
       },
+      observers: [
+        '_setLocalStorage(localStorageKey, idToken)'
+      ],
       ready: function() {
         // instantiate Lock
         var lock = new Auth0Lock(this.clientId, this.domain, {
@@ -70,7 +72,6 @@
         if (hash && hash.idToken) {
           // the user came back from the login (either SSO or regular login),
           // save the token
-          localStorage.setItem(this.userToken, hash.idToken);
           this._setIdToken(hash.idToken);
           // redirect to "targetUrl" if any
           //window.location.href = hash.state || '#home';
@@ -78,7 +79,7 @@
           return;
         }
         // Get the user token if we've saved it in localStorage before
-        var idToken = localStorage.getItem(this.userToken);
+        var idToken = localStorage.getItem(this.localStorageKey);
         if (idToken) {
           // If there's a token, just redirect to "targetUrl" if any
           //window.location.href = '#/leave-types';
@@ -122,8 +123,17 @@
 
       signOut: function(clientId) {
         var appLevelSignOut = clientId ? ('&client_id=' + clientId) : '';
-        localStorage.removeItem(this.userToken);
+        localStorage.removeItem(this.localStorageKey);
         window.location.href = 'https://' + this.domain + '/v2/logout?returnTo=' + this.logoutRedirectTo + appLevelSignOut;
+      },
+
+      _computeKey: function (user) {
+        return "auth0:authUser:" + user.user_id;
+      },
+
+      _setLocalStorage: function () {
+        var value = JSON.stringify({idToken: this.idToken});
+        localStorage.setItem(this.localStorageKey, value);
       }
     });
 
