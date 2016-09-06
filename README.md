@@ -1,6 +1,10 @@
 # \<auth0-element\>
 
-An element that makes it easy to declaratively use auth0
+> An element that makes it easy to declaratively use auth0
+
+### Demo
+See latest auth0-element demo (from master) at https://johnlim.github.io/auth0-element/components/auth0-element/demo/
+
 
 ## Install the Polymer-CLI
 
