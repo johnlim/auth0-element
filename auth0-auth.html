@@ -1,3 +1,4 @@
+<link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="auth0.html">
 <link rel="import" href="auth0-lock.html">
 
@@ -45,14 +46,18 @@
           type: String,
           readOnly: true,
           notify: true
+        },
+        hostedPages: {
+          type: Boolean,
+          value: false
         }
       },
       observers: [
-        '_setLocalStorage(localStorageKey, idToken)'
+        '_setLocalStorage(localStorageKey, idToken)', '_init(domain, clientId)'
       ],
-      ready: function() {
+      _init: function(domain, clientId) {
         // instantiate Lock
-        var lock = new Auth0Lock(this.clientId, this.domain, {
+        var lock = new Auth0Lock(clientId, domain, {
               auth: {
                 params: {
                   scope: this.scope
@@ -61,8 +66,8 @@
               closable: false
             });
         this._setAuth0(new Auth0({
-            domain:       this.domain,
-            clientID:     this.clientId
+            domain:       domain,
+            clientID:     clientId
           })
         );
 
@@ -99,10 +104,19 @@
             });
           } else {
             // regular login
+            if(this.hostedPages) {
+              var hostedPageUrl = 'https://' + domain +  '/login?client=' + clientId;
+              this._replaceLocationHref(hostedPageUrl);
+              return
+            }
+            //else
             lock.show();
-
           }
         }.bind(this));
+      },
+
+      _replaceLocationHref: function(hostedPageUrl) {
+        window.location.replace(hostedPageUrl);
       },
 
       _getProfile: function(idToken) {

@@ -1,0 +1,49 @@
+<!doctype html>
+
+<html>
+  <head>
+    <title>auth0-auth test</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../../web-component-tester/browser.js"></script>
+
+    <link rel="import" href="../auth0-auth.html">
+  </head>
+  <body>
+
+    <test-fixture id="basic">
+      <template>
+        <auth0-auth></auth0-auth>
+      </template>
+    </test-fixture>
+
+    <script>
+      suite('auth0-auth', function() {
+        setup(function () {
+          sinon.stub(window, 'Auth0Lock').returns({});
+          sinon.stub(window, 'Auth0').returns({
+            parseHash: function(){return {}},
+            getSSOData: function(fn) {
+              return fn(null, {})
+            }
+          });
+        });
+
+        test('Should redirect to hosted login page if useHostedPages set to true', function(done) {
+          var element = fixture('basic');
+          var spy = sinon.stub(element, '_replaceLocationHref');
+          element.hostedPages = true;
+          element.domain = 'auth0-domain';
+          element.clientId = 'auth0-clientId';
+
+          flush(function(){
+            sinon.assert.calledWith(spy, 'https://auth0-domain/login?client=auth0-clientId');
+            done()
+          });
+        });
+
+      });
+    </script>
+  </body>
+</html>
