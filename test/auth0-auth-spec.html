@@ -20,14 +20,20 @@
 
     <script>
       suite('auth0-auth', function() {
+        var auth0Lock, auth0;
         setup(function () {
-          sinon.stub(window, 'Auth0Lock').returns({});
-          sinon.stub(window, 'Auth0').returns({
+          auth0Lock = sinon.stub(window, 'Auth0Lock').returns({});
+          auth0 = sinon.stub(window, 'Auth0').returns({
             parseHash: function(){return {}},
             getSSOData: function(fn) {
               return fn(null, {})
             }
           });
+        });
+
+        teardown(function () {
+          auth0Lock.restore();
+          auth0.restore();
         });
 
         test('Should redirect to hosted login page if useHostedPages set to true', function(done) {
@@ -36,13 +42,84 @@
           element.hostedPages = true;
           element.domain = 'auth0-domain';
           element.clientId = 'auth0-clientId';
-
+          element.options = {};
           flush(function(){
             sinon.assert.calledWith(spy, 'https://auth0-domain/login?client=auth0-clientId');
             done()
           });
         });
 
+        test('Should pass auth options as url params for hosted pages', function(done) {
+          var element = fixture('basic');
+          var spy = sinon.stub(element, '_replaceLocationHref');
+          element.hostedPages = true;
+          element.domain = 'auth0-domain';
+          element.clientId = 'auth0-clientId';
+          element.options = {
+            auth: {
+//              params: {param1: "value1 value2", param2: "value3"},
+//              autoParseHash: true,
+//              redirect: true,
+              redirectUrl: "some url",
+//              responseMode: "form_post",
+              responseType: "token",
+              sso: true
+//          connectionScopes: {
+//            connectionName: [ 'scope1', 'scope2' ]
+            }
+          };
+
+          flush(function(){
+            var param1 = encodeURIComponent(element.options.auth.redirectUrl);
+            var param2 = encodeURIComponent(element.options.auth.responseType);
+            var param3 = encodeURIComponent(element.options.auth.sso);
+            sinon.assert.calledWith(spy, 'https://auth0-domain/login?client=auth0-clientId&redirectUrl=' + param1 + '&responseType=' + param2 + '&sso=' + param3 );
+            done()
+          });
+        });
+
+        test('Should pass auth param options as url params for hosted pages', function(done) {
+          var element = fixture('basic');
+          var spy = sinon.stub(element, '_replaceLocationHref');
+          element.hostedPages = true;
+          element.domain = 'auth0-domain';
+          element.clientId = 'auth0-clientId';
+          element.options = {
+            auth: {
+              params: {param1: "value1 value2", param2: "value3"}
+            }
+          };
+
+          flush(function(){
+            var param1 = encodeURIComponent(element.options.auth.params.param1);
+            var param2 = encodeURIComponent(element.options.auth.params.param2);
+            sinon.assert.calledWith(spy, 'https://auth0-domain/login?client=auth0-clientId&param1=' + param1 + '&param2=' + param2);
+            done()
+          });
+        });
+
+        test('Should pass all auth options as url params for hosted pages', function(done) {
+          var element = fixture('basic');
+          var spy = sinon.stub(element, '_replaceLocationHref');
+          element.hostedPages = true;
+          element.domain = 'auth0-domain';
+          element.clientId = 'auth0-clientId';
+          element.options = {
+            auth: {
+              params: {param1: "value1"},
+              redirectUrl: "some url",
+              responseType: "token"
+            }
+          };
+
+          flush(function(){
+            var param1 = encodeURIComponent(element.options.auth.params.param1);
+            var param2 = encodeURIComponent(element.options.auth.redirectUrl);
+            var param3 = encodeURIComponent(element.options.auth.responseType);
+            sinon.assert.calledWith(spy, 'https://auth0-domain/login?client=auth0-clientId&param1=' + param1 + '&redirectUrl=' + param2 + '&responseType=' + param3 );
+            done()
+          });
+        });
       });
     </script>
   </body>

@@ -98,14 +98,25 @@
           } else {
             // regular login
             if(this.hostedPages) {
+              var params = '';
               var hostedPageUrl = 'https://' + domain +  '/login?client=' + clientId;
-              this._replaceLocationHref(hostedPageUrl);
+              if(options.auth){
+                params = this._convertOptionsToUrlParameters(options.auth)
+              }
+              this._replaceLocationHref(hostedPageUrl + (params ? '&' + params : params));
               return
             }
             //else
             lock.show();
           }
         }.bind(this));
+      },
+
+      _convertOptionsToUrlParameters: function(obj) {
+        return Object.keys(obj).map(function (key) {
+          if(key==='params'){ return this._convertOptionsToUrlParameters(obj[key])}
+          return encodeURIComponent(key) + '=' + encodeURIComponent(obj[key])
+        }.bind(this)).join('&');
       },
 
       _replaceLocationHref: function(hostedPageUrl) {
