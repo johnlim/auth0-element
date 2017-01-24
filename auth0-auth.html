@@ -19,8 +19,8 @@
           domain: {
             type: String
           },
-          scope: {
-            type: String
+          options: {
+            type: Object
           },
           logoutRedirectTo: {
             type: String
@@ -53,22 +53,15 @@
         }
       },
       observers: [
-        '_setLocalStorage(localStorageKey, idToken)', '_init(domain, clientId)'
+        '_setLocalStorage(localStorageKey, idToken)', '_init(clientId, domain, options)'
       ],
-      _init: function(domain, clientId) {
+      _init: function(clientId, domain, options) {
         // instantiate Lock
-        var lock = new Auth0Lock(clientId, domain, {
-              auth: {
-                params: {
-                  scope: this.scope
-                }
-              },
-              closable: false
-            });
+        var lock = new Auth0Lock(clientId, domain, options);
         this._setAuth0(new Auth0({
-            domain:       domain,
-            clientID:     clientId
-          })
+                  domain:       domain,
+                  clientID:     clientId
+                })
         );
 
         // sso requires redirect mode, hence we need to parse
@@ -100,7 +93,7 @@
               // If the user wanted to go to some other URL, you can track it with `state`
               state: this.getQueryParameter('targetUrl'),
               callbackOnLocationHash: true,
-              scope: this.scope
+              scope: (options.auth && options.auth.params && options.auth.params.scope) || 'openid'
             });
           } else {
             // regular login
