@@ -13,23 +13,23 @@
       is: 'auth0-auth',
 
       properties: {
-          clientId: {
-            type: String
-          },
-          domain: {
-            type: String
-          },
-          options: {
-            type: Object
-          },
-          logoutRedirectTo: {
-            type: String
-          },
-          userProfile: {
-            readOnly: true,
-            notify: true,
-            type: Object
-          },
+        clientId: {
+          type: String
+        },
+        domain: {
+          type: String
+        },
+        options: {
+          type: Object
+        },
+        logoutRedirectTo: {
+          type: String
+        },
+        userProfile: {
+          readOnly: true,
+          notify: true,
+          type: Object
+        },
         /**
          * A pointer to the auth0 instance being used by the element.
          */
@@ -40,7 +40,7 @@
         localStorageKey: {
           type: String,
           readOnly: true,
-          computed: '_computeKey(userProfile)',
+          value: "auth0:authUser"
         },
         idToken: {
           type: String,
@@ -59,9 +59,9 @@
         // instantiate Lock
         var lock = new Auth0Lock(clientId, domain, options);
         this._setAuth0(new Auth0({
-                  domain:       domain,
-                  clientID:     clientId
-                })
+              domain:       domain,
+              clientID:     clientId
+            })
         );
 
         // sso requires redirect mode, hence we need to parse
@@ -135,7 +135,7 @@
       getQueryParameter: function(name) {
         name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
         var regex = new RegExp("[\\?&]" + name + "=([^&]*)"),
-          results = regex.exec(location.search);
+            results = regex.exec(location.search);
         return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
       },
 
@@ -145,12 +145,8 @@
         window.location.href = 'https://' + this.domain + '/v2/logout?returnTo=' + this.logoutRedirectTo + appLevelSignOut;
       },
 
-      _computeKey: function (user) {
-        return "auth0:authUser:" + user.user_id;
-      },
-
       _setLocalStorage: function () {
-        var value = JSON.stringify({idToken: this.idToken});
+        var value = this.idToken;
         localStorage.setItem(this.localStorageKey, value);
       }
     });
