@@ -58,7 +58,7 @@
       _init: function(clientId, domain, options) {
         // instantiate Lock
         var lock = new Auth0Lock(clientId, domain, options);
-        this._setAuth0(new Auth0({
+        this._setAuth0(new auth0.WebAuth({
               domain:       domain,
               clientID:     clientId
             })
