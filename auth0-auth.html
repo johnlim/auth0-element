@@ -140,9 +140,8 @@
       },
 
       signOut: function(clientId) {
-        var appLevelSignOut = clientId ? ('&client_id=' + clientId) : '';
         localStorage.removeItem(this.localStorageKey);
-        window.location.href = 'https://' + this.domain + '/v2/logout?returnTo=' + this.logoutRedirectTo + appLevelSignOut;
+        this.auth0.logout({returnTo: this.logoutRedirectTo, client_id: clientId}, {version: 'v2'});
       },
 
       _setLocalStorage: function () {

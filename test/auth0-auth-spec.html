@@ -22,12 +22,15 @@
       suite('auth0-auth', function() {
         var auth0Lock, auth0;
         setup(function () {
-          auth0Lock = sinon.stub(window, 'Auth0Lock').returns({});
+          auth0Lock = sinon.stub(window, 'Auth0Lock').returns({
+            show: function() {}
+          });
           auth0 = sinon.stub(window, 'Auth0').returns({
             parseHash: function(){return {}},
             getSSOData: function(fn) {
               return fn(null, {})
-            }
+            },
+            logout: function () {}
           });
         });
 
@@ -113,6 +116,37 @@
             sinon.assert.calledWith(spy, 'https://auth0-domain/login?client=auth0-clientId&param1=' + param1 + '&redirectUrl=' + param2 + '&responseType=' + param3 );
             done()
           });
+        });
+
+        test('signOut logs the user out of application session by clearing localStorage', function() {
+          var element = fixture('basic');
+          //call _init so that auth0 will be initialised as it cannot be stubbed till its defined and we cannot assign it here as its set as read-only
+          element._init('auth0-clientId', 'auth0-domain', {});
+          sinon.stub(element.auth0, 'logout');
+          localStorage.setItem(element.localStorageKey, "abc");
+          element.signOut();
+          assert.equal(null,localStorage.getItem("auth0:authUser"))
+        });
+
+        test('Signing out WITH client id results in app level signout', function() {
+          var element = fixture('basic');
+          element.logoutRedirectTo = 'localHost';
+          //call _init so that auth0 will be initialised as it cannot be stubbed till its defined and we cannot assign it here as its set as read-only
+          element._init('auth0-clientId', 'auth0-domain', {});
+          var spy = sinon.stub(element.auth0, 'logout');
+          element.signOut('abc');
+
+          sinon.assert.calledWithExactly(spy, {returnTo: element.logoutRedirectTo, client_id: 'abc'}, {version: 'v2'});
+        });
+
+        test('Signing out WITHOUT client id results in account level signout', function() {
+          var element = fixture('basic');
+          element.logoutRedirectTo = 'abc';
+          //call _init so that auth0 will be initialised as it cannot be stubbed till its defined and we cannot assign it here as its set as read-only
+          element._init('auth0-clientId', 'auth0-domain', {});
+          var spy = sinon.stub(element.auth0, 'logout');
+          element.signOut();
+          sinon.assert.calledWithExactly(spy, {returnTo: element.logoutRedirectTo, client_id: undefined}, {version: 'v2'});
         });
       });
     </script>
