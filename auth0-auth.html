@@ -126,7 +126,7 @@
       _getProfile: function(idToken) {
         this.auth0.getProfile(idToken, function (err, profile) {
           if (err) {
-            return alert('There was an error getting the profile: ' + err.message);
+            this.signOut(this.clientId);
           }
           this._setUserProfile(profile);
         }.bind(this));
