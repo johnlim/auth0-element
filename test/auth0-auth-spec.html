@@ -25,7 +25,7 @@
           auth0Lock = sinon.stub(window, 'Auth0Lock').returns({
             show: function() {}
           });
-          auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
+          auth0 = sinon.stub(window, 'Auth0').returns({
             parseHash: function(){return {}},
             getSSOData: function(fn) {
               return fn(null, {})
