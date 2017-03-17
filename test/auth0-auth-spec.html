@@ -149,6 +149,121 @@
           sinon.assert.calledWithExactly(spy, {returnTo: element.logoutRedirectTo, client_id: undefined}, {version: 'v2'});
         });
       });
+
+      suite('When authentication succeeds', function () {
+        var auth0Lock, auth0;
+        setup(function () {
+          auth0Lock = sinon.stub(window, 'Auth0Lock').returns({
+            show: function () {
+            }
+          });
+          auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
+            parseHash: function (fn) {
+              return fn(null, {accessToken: 'accessToken', idToken: 'idToken'})
+            },
+            getSSOData: function (fn) {
+              return fn(null, {})
+            },
+            logout: function () {
+            },
+            client: {
+              userInfo: function (accessToken, fn) {
+                return fn(null, {user: 'userInfo'})
+              }
+            }
+          });
+        });
+
+        teardown(function () {
+          auth0Lock.restore();
+          auth0.restore();
+        });
+
+        test('User profile should be set', function () {
+          var element = fixture('basic');
+          element._init('auth0-clientId', 'auth0-domain', {});
+          assert(element.userProfile);
+        });
+
+        test('id token will be stored to local storage', function () {
+          var element = fixture('basic');
+          element._init('auth0-clientId', 'auth0-domain', {});
+          assert.equal('idToken',localStorage.getItem("auth0:authUser"))
+        });
+
+        test('access token will be stored to local storage', function () {
+          var element = fixture('basic');
+          element._init('auth0-clientId', 'auth0-domain', {});
+          assert.equal('accessToken',localStorage.getItem("auth0:accessToken"))
+        });
+      });
+
+      suite('When error occurs during authentication', function () {
+        var auth0Lock, auth0, stubLockDotShow;
+        setup(function () {
+          stubLockDotShow =  sinon.stub().returns("");
+          auth0Lock = sinon.stub(window, 'Auth0Lock').returns({
+            show: stubLockDotShow
+          });
+        });
+
+        teardown(function () {
+          auth0Lock.restore();
+//          auth0.restore();
+        });
+
+        test('User profile should NOT be set if authResult is null', function () {
+          auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
+            parseHash: function (fn) {
+              return fn(null, null)
+            }
+          });
+          var element = fixture('basic');
+          element._init('auth0-clientId', 'auth0-domain', {});
+          assert(!element.userProfile);
+          auth0.restore();
+        });
+
+        test('User profile should NOT be set if authResult does not contain an access token', function () {
+          auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
+            parseHash: function (fn) {
+              return fn(null, {idToken: 'idToken'})
+            }
+          });
+          var element = fixture('basic');
+          element._init('auth0-clientId', 'auth0-domain', {});
+          assert(!element.userProfile);
+          auth0.restore();
+        });
+
+        test('User profile should NOT be set if authResult does not contain an id token', function () {
+          auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
+            parseHash: function (fn) {
+              return fn(null, {accessToken: 'accessToken'})
+            }
+          });
+          var element = fixture('basic');
+          element._init('auth0-clientId', 'auth0-domain', {});
+          assert(!element.userProfile);
+          auth0.restore();
+        });
+
+        test('User should be redirected to login', function () {
+          auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
+            parseHash: function (fn) {
+              return fn(null, {error: 'error'})
+            }
+          });
+          var element = fixture('basic');
+          element._init('auth0-clientId', 'auth0-domain', {});
+          assert.equal(stubLockDotShow.callCount, 1);
+          auth0.restore();
+        });
+
+      })
+
+//      suite('Calls SSO when not logged in', function() {})
+//      suite('checks for local token', function() {})
     </script>
   </body>
 </html>

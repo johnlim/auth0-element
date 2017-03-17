@@ -64,26 +64,31 @@
             })
         );
 
+        var error = this._parseHash();
+        if(error) {
+          lock.show()
+          return;
+        }
         // sso requires redirect mode, hence we need to parse
         // the response from Auth0 that comes on location hash
-        var hash = this.auth0.parseHash(window.location.hash);
-        if (hash && hash.idToken) {
-          // the user came back from the login (either SSO or regular login),
-          // save the token
-          this._setIdToken(hash.idToken);
-          // redirect to "targetUrl" if any
-          //window.location.href = hash.state || '#home';
-          this._getProfile(hash.idToken);
-          return;
-        }
-        // Get the user token if we've saved it in localStorage before
-        var idToken = localStorage.getItem(this.localStorageKey);
-        if (idToken) {
-          // If there's a token, just redirect to "targetUrl" if any
-          //window.location.href = '#/leave-types';
-          this._getProfile(idToken);
-          return;
-        }
+//        var hash = this.auth0.parseHash(window.location.hash);
+//        if (hash && hash.idToken) {
+//          // the user came back from the login (either SSO or regular login),
+//          // save the token
+//          this._setIdToken(hash.idToken);
+//          // redirect to "targetUrl" if any
+//          //window.location.href = hash.state || '#home';
+//          this._getProfile(hash.idToken);
+//          return;
+//        }
+//        // Get the user token if we've saved it in localStorage before
+//        var idToken = localStorage.getItem(this.localStorageKey);
+//        if (idToken) {
+//          // If there's a token, just redirect to "targetUrl" if any
+//          //window.location.href = '#/leave-types';
+//          this._getProfile(idToken);
+//          return;
+//        }
 
         // user is not logged, check whether there is an SSO session or not
         this.auth0.getSSOData(function(err, data) {
@@ -110,6 +115,30 @@
             lock.show();
           }
         }.bind(this));
+      },
+
+      _parseHash: function(){
+          var error;
+//          var token = localStorage.getItem('id_token');
+//          if (token) {
+//            show_logged_in();
+//          } else {
+          this.auth0.parseHash(function(err, authResult) {
+            error = err;
+            if (authResult && authResult.accessToken && authResult.idToken) {
+              this.auth0.client.userInfo(authResult.accessToken, function(err, user) {
+                this._setUserProfile(user);
+              }.bind(this));
+              window.location.hash = '';
+              localStorage.setItem('auth0:authUser', authResult.idToken);
+              localStorage.setItem('auth0:accessToken', authResult.accessToken);
+            } else if (authResult && authResult.error) {
+              console.log('error: ' + authResult.error);
+              error = authResult.error;
+            }
+          }.bind(this));
+          return({error: error})
+//          }
       },
 
       _convertOptionsToUrlParameters: function(obj) {
