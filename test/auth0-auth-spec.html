@@ -19,6 +19,16 @@
     </test-fixture>
 
     <script>
+      var setLocalStorage = function() {
+        localStorage.setItem('auth0:authUser', 'idToken' );
+        localStorage.setItem('auth0:accessToken', 'accessToken');
+      };
+
+      var clearLocalStorage = function() {
+        localStorage.removeItem('auth0:authUser');
+        localStorage.removeItem('auth0:accessToken');
+      };
+
       suite('auth0-auth', function() {
         var auth0Lock, auth0;
         setup(function () {
@@ -26,7 +36,7 @@
             show: function() {}
           });
           auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
-            parseHash: function(){return {}},
+            parseHash: function(options, fn){return fn()},
             getSSOData: function(fn) {
               return fn(null, {})
             },
@@ -153,12 +163,13 @@
       suite('When authentication succeeds', function () {
         var auth0Lock, auth0;
         setup(function () {
+          clearLocalStorage();
           auth0Lock = sinon.stub(window, 'Auth0Lock').returns({
             show: function () {
             }
           });
           auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
-            parseHash: function (fn) {
+            parseHash: function (options, fn) {
               return fn(null, {accessToken: 'accessToken', idToken: 'idToken'})
             },
             getSSOData: function (fn) {
@@ -175,6 +186,7 @@
         });
 
         teardown(function () {
+          clearLocalStorage();
           auth0Lock.restore();
           auth0.restore();
         });
@@ -214,9 +226,12 @@
 
         test('User profile should NOT be set if authResult is null', function () {
           auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
-            parseHash: function (fn) {
+            parseHash: function (options, fn) {
               return fn(null, null)
-            }
+            },
+            getSSOData: function(fn) {
+              return fn(null, {})
+            },
           });
           var element = fixture('basic');
           element._init('auth0-clientId', 'auth0-domain', {});
@@ -226,9 +241,12 @@
 
         test('User profile should NOT be set if authResult does not contain an access token', function () {
           auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
-            parseHash: function (fn) {
+            parseHash: function (options, fn) {
               return fn(null, {idToken: 'idToken'})
-            }
+            },
+            getSSOData: function(fn) {
+              return fn(null, {})
+            },
           });
           var element = fixture('basic');
           element._init('auth0-clientId', 'auth0-domain', {});
@@ -238,9 +256,12 @@
 
         test('User profile should NOT be set if authResult does not contain an id token', function () {
           auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
-            parseHash: function (fn) {
+            parseHash: function (options, fn) {
               return fn(null, {accessToken: 'accessToken'})
-            }
+            },
+            getSSOData: function(fn) {
+              return fn(null, {})
+            },
           });
           var element = fixture('basic');
           element._init('auth0-clientId', 'auth0-domain', {});
@@ -250,20 +271,78 @@
 
         test('User should be redirected to login', function () {
           auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
-            parseHash: function (fn) {
+            parseHash: function (options, fn) {
+              assert.equal(window.location.hash, options);
               return fn(null, {error: 'error'})
-            }
+            },
+            getSSOData: function(fn) {
+              return fn(null, {})
+            },
           });
           var element = fixture('basic');
           element._init('auth0-clientId', 'auth0-domain', {});
           assert.equal(stubLockDotShow.callCount, 1);
           auth0.restore();
         });
+      });
 
-      })
+      suite('Auth0 bug? - parseHash)', function() {
+        test('must be called with window.location.hash', function () {
+          var auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
+            parseHash: function (options, fn) {
+              assert.equal(window.location.hash, options);
+              return fn(null, {error: 'error'})
+            },
+            getSSOData: function(fn) {
+              return fn(null, {})
+            },
+          });
+          auth0Lock = sinon.stub(window, 'Auth0Lock').returns({
+            show: function() {}
+          });
+          var element = fixture('basic');
+          element._init('auth0-clientId', 'auth0-domain', {});
+          auth0.restore();
+        });
 
+      });
+
+      suite('When user is already logged in', function() {
+        var auth0Lock, auth0;
+        setup(function () {
+          setLocalStorage();
+//          auth0Lock = sinon.stub(window, 'Auth0Lock').returns({
+//            show: function() {}
+//          });
+          auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
+            client: {
+              userInfo: function (accessToken, fn) {
+                return fn(null, {user: 'userInfo'})
+              }
+            }
+          });
+        });
+//
+        teardown(function () {
+          clearLocalStorage();
+//          auth0Lock.restore();
+          auth0.restore();
+        });
+
+        test('User profile should be set', function() {
+          var element = fixture('basic');
+          element._init('auth0-clientId', 'auth0-domain', {});
+          assert(element.userProfile);
+        });
+
+        test('user should be redirected to login if token has expired', function() {
+          assert(!element.userProfile);
+
+        });
+
+
+      });
 //      suite('Calls SSO when not logged in', function() {})
-//      suite('checks for local token', function() {})
     </script>
   </body>
 </html>

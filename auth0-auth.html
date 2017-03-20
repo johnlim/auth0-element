@@ -57,18 +57,20 @@
       ],
       _init: function(clientId, domain, options) {
         // instantiate Lock
-        var lock = new Auth0Lock(clientId, domain, options);
         this._setAuth0(new auth0.WebAuth({
               domain:       domain,
               clientID:     clientId
             })
         );
 
-        var error = this._parseHash();
-        if(error) {
-          lock.show()
-          return;
-        }
+        this._parseHash();
+//        if(status.error) {
+//          lock.show();
+//          return;
+//        }
+//        if(this.userProfile) {
+//          return
+//        }
         // sso requires redirect mode, hence we need to parse
         // the response from Auth0 that comes on location hash
 //        var hash = this.auth0.parseHash(window.location.hash);
@@ -90,41 +92,43 @@
 //          return;
 //        }
 
-        // user is not logged, check whether there is an SSO session or not
-        this.auth0.getSSOData(function(err, data) {
-          if (!err && data.sso) {
-            // there is! redirect to Auth0 for SSO
-            this.auth0.signin({
-              // If the user wanted to go to some other URL, you can track it with `state`
-              state: this.getQueryParameter('targetUrl'),
-              callbackOnLocationHash: true,
-              scope: (options.auth && options.auth.params && options.auth.params.scope) || 'openid'
-            });
-          } else {
-            // regular login
-            if(this.hostedPages) {
-              var params = '';
-              var hostedPageUrl = 'https://' + domain +  '/login?client=' + clientId;
-              if(options.auth){
-                params = this._convertOptionsToUrlParameters(options.auth)
-              }
-              this._replaceLocationHref(hostedPageUrl + (params ? '&' + params : params));
-              return
-            }
-            //else
-            lock.show();
-          }
-        }.bind(this));
+//        // user is not logged, check whether there is an SSO session or not
+//        this.auth0.getSSOData(function(err, data) {
+//          if (!err && data.sso) {
+//            // there is! redirect to Auth0 for SSO
+//            this.auth0.signin({
+//              // If the user wanted to go to some other URL, you can track it with `state`
+//              state: this.getQueryParameter('targetUrl'),
+//              callbackOnLocationHash: true,
+//              scope: (options.auth && options.auth.params && options.auth.params.scope) || 'openid'
+//            });
+//          } else {
+//            // regular login
+//            if(this.hostedPages) {
+//              var params = '';
+//              var hostedPageUrl = 'https://' + domain +  '/login?client=' + clientId;
+//              if(options.auth){
+//                params = this._convertOptionsToUrlParameters(options.auth)
+//              }
+//              this._replaceLocationHref(hostedPageUrl + (params ? '&' + params : params));
+//              return
+//            }
+//            //else
+//            lock.show();
+//          }
+//        }.bind(this));
       },
 
       _parseHash: function(){
-          var error;
-//          var token = localStorage.getItem('id_token');
-//          if (token) {
-//            show_logged_in();
-//          } else {
-          this.auth0.parseHash(function(err, authResult) {
-            error = err;
+          var idToken = localStorage.getItem('auth0:authUser');
+          var accessToken = localStorage.getItem('auth0:accessToken');
+          if (idToken && accessToken) {
+            this.auth0.client.userInfo(accessToken, function(err, user) {
+              this._setUserProfile(user);
+            }.bind(this));
+            return
+          }
+          this.auth0.parseHash(window.location.hash, function(err, authResult) {
             if (authResult && authResult.accessToken && authResult.idToken) {
               this.auth0.client.userInfo(authResult.accessToken, function(err, user) {
                 this._setUserProfile(user);
@@ -132,13 +136,36 @@
               window.location.hash = '';
               localStorage.setItem('auth0:authUser', authResult.idToken);
               localStorage.setItem('auth0:accessToken', authResult.accessToken);
-            } else if (authResult && authResult.error) {
-              console.log('error: ' + authResult.error);
-              error = authResult.error;
+              return
+            } else {
+              // user is not logged, check whether there is an SSO session or not
+              this.auth0.getSSOData(function(err, data) {
+                if (!err && data.sso) {
+                  // there is! redirect to Auth0 for SSO
+                  this.auth0.signin({
+                    // If the user wanted to go to some other URL, you can track it with `state`
+                    state: this.getQueryParameter('targetUrl'),
+                    callbackOnLocationHash: true,
+                    scope: (options.auth && options.auth.params && options.auth.params.scope) || 'openid'
+                  });
+                } else {
+                  // regular login
+                  if(this.hostedPages) {
+                    var params = '';
+                    var hostedPageUrl = 'https://' + this.domain +  '/login?client=' + this.clientId;
+                    if(this.options.auth){
+                      params = this._convertOptionsToUrlParameters(this.options.auth)
+                    }
+                    this._replaceLocationHref(hostedPageUrl + (params ? '&' + params : params));
+                    return
+                  }
+                  //else
+                  var lock = new Auth0Lock(this.clientId, this.domain, this.options);
+                  lock.show();
+                }
+              }.bind(this));
             }
           }.bind(this));
-          return({error: error})
-//          }
       },
 
       _convertOptionsToUrlParameters: function(obj) {
