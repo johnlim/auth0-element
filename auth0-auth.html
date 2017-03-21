@@ -139,7 +139,8 @@
               return
             } else {
               // user is not logged, check whether there is an SSO session or not
-              this.auth0.getSSOData(function(err, data) {
+//              this.auth0.renewAuth({scope: (options.auth && options.auth.params && options.auth.params.scope) || 'openid'}, function(err, data) {
+                this.auth0.getSSOData(function(err, data) {
                 if (!err && data.sso) {
                   // there is! redirect to Auth0 for SSO
                   this.auth0.signin({
@@ -151,12 +152,13 @@
                 } else {
                   // regular login
                   if(this.hostedPages) {
-                    var params = '';
-                    var hostedPageUrl = 'https://' + this.domain +  '/login?client=' + this.clientId;
-                    if(this.options.auth){
-                      params = this._convertOptionsToUrlParameters(this.options.auth)
-                    }
-                    this._replaceLocationHref(hostedPageUrl + (params ? '&' + params : params));
+//                    var params = '';
+//                    var hostedPageUrl = 'https://' + this.domain +  '/login?client=' + this.clientId;
+//                    if(this.options.auth){
+//                      params = this._convertOptionsToUrlParameters(this.options.auth)
+//                    }
+//                    this._replaceLocationHref(hostedPageUrl + (params ? '&' + params : params));
+                    this.auth0.authorize(this.options.auth);
                     return
                   }
                   //else
