@@ -66,9 +66,8 @@
 
         test('signOut logs the user out of application session by clearing localStorage', function() {
           var element = fixture('basic');
-          element.queryParams = {};
           //call _init so that auth0 will be initialised as it cannot be stubbed till its defined and we cannot assign it here as its set as read-only
-          element._init('auth0-clientId', 'auth0-domain', {});
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
           sinon.stub(element.auth0, 'logout');
           localStorage.setItem(element.localStorageKey, "abc");
           element.signOut();
@@ -77,10 +76,9 @@
 
         test('Signing out WITH client id results in app level signout', function() {
           var element = fixture('basic');
-          element.queryParams = {};
           element.logoutRedirectTo = 'localHost';
           //call _init so that auth0 will be initialised as it cannot be stubbed till its defined and we cannot assign it here as its set as read-only
-          element._init('auth0-clientId', 'auth0-domain', {});
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
           var spy = sinon.stub(element.auth0, 'logout');
           element.signOut('abc');
 
@@ -89,10 +87,9 @@
 
         test('Signing out WITHOUT client id results in account level signout', function() {
           var element = fixture('basic');
-          element.queryParams = {};
           element.logoutRedirectTo = 'abc';
           //call _init so that auth0 will be initialised as it cannot be stubbed till its defined and we cannot assign it here as its set as read-only
-          element._init('auth0-clientId', 'auth0-domain', {});
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
           var spy = sinon.stub(element.auth0, 'logout');
           element.signOut();
           sinon.assert.calledWithExactly(spy, {returnTo: element.logoutRedirectTo, client_id: undefined}, {version: 'v2'});
@@ -129,29 +126,25 @@
 
         test('User profile should be set', function () {
           var element = fixture('basic');
-          element.queryParams = {};
-          element._init('auth0-clientId', 'auth0-domain', {});
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
           assert(element.userProfile);
         });
 
         test('id token will be stored to local storage', function () {
           var element = fixture('basic');
-          element.queryParams = {};
-          element._init('auth0-clientId', 'auth0-domain', {});
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
           assert.equal('idToken',localStorage.getItem("auth0:authUser"))
         });
 
         test('access token will be stored to local storage', function () {
           var element = fixture('basic');
-          element.queryParams = {};
-          element._init('auth0-clientId', 'auth0-domain', {});
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
           assert.equal('accessToken',localStorage.getItem("auth0:accessToken"))
         });
 
         test('id token property will be set', function () {
           var element = fixture('basic');
-          element.queryParams = {};
-          element._init('auth0-clientId', 'auth0-domain', {});
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
           assert.equal('idToken', element.idToken)
         });
       });
@@ -180,9 +173,8 @@
             }
           });
           var element = fixture('basic');
-          element.queryParams = {};
           element.options = {auth: {scope: 'openId'}};
-          element._init('auth0-clientId', 'auth0-domain', {});
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
           assert(!element.userProfile);
           auth0.restore();
         });
@@ -197,9 +189,8 @@
             }
           });
           var element = fixture('basic');
-          element.queryParams = {};
           element.options = {auth: {scope: 'openId'}};
-          element._init('auth0-clientId', 'auth0-domain', {});
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
           assert(!element.userProfile);
           auth0.restore();
         });
@@ -214,9 +205,8 @@
             }
           });
           var element = fixture('basic');
-          element.queryParams = {};
           element.options = {auth: {scope: 'openId'}};
-          element._init('auth0-clientId', 'auth0-domain', {});
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
           assert(!element.userProfile);
           auth0.restore();
         });
@@ -231,9 +221,8 @@
             }
           });
           var element = fixture('basic');
-          element.queryParams = {};
           element.options = {auth: {scope: 'openId'}};
-          element._init('auth0-clientId', 'auth0-domain', {});
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
           assert.equal(stubLockDotShow.callCount, 1);
           auth0.restore();
         });
@@ -250,10 +239,9 @@
             authorize: stubAuthorize
           });
           var element = fixture('basic');
-          element.queryParams = {};
           element.hostedPages = true;
           element.options = {auth: 'authOptions'};
-          element._init('auth0-clientId', 'auth0-domain', {});
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
           sinon.assert.calledWith(stubAuthorize, element.options.auth);
           assert.equal(stubAuthorize.callCount, 1);
           auth0.restore();
@@ -276,9 +264,8 @@
             show: function() {}
           });
           var element = fixture('basic');
-          element.queryParams = {};
           element.options = {auth: {scope: 'openId'}};
-          element._init('auth0-clientId', 'auth0-domain', {});
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
           auth0.restore();
         });
 
@@ -304,16 +291,14 @@
 
         test('User profile should be set', function() {
           var element = fixture('basic');
-          element.queryParams = {};
-          element._init('auth0-clientId', 'auth0-domain', {});
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
           assert(element.userProfile);
         });
 
 
         test('id token property will be set', function () {
           var element = fixture('basic');
-          element.queryParams = {};
-          element._init('auth0-clientId', 'auth0-domain', {});
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
           assert.equal('idToken', element.idToken)
         });
 
@@ -350,33 +335,29 @@
 
         test('User profile should be set', function() {
           var element = fixture('basic');
-          element.queryParams = {};
           element.options = {auth: {scope: 'openId'}};
-          element._init('auth0-clientId', 'auth0-domain', {});
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
           assert(element.userProfile);
         });
 
         test('access token should be stored to local storage', function () {
           var element = fixture('basic');
-          element.queryParams = {};
           element.options = {auth: {scope: 'openId'}};
-          element._init('auth0-clientId', 'auth0-domain', {});
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
           assert.equal('accessToken',localStorage.getItem("auth0:accessToken"))
         });
 
         test('id token should be stored to local storage', function () {
           var element = fixture('basic');
-          element.queryParams = {};
           element.options = {auth: {scope: 'openId'}};
-          element._init('auth0-clientId', 'auth0-domain', {});
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
           assert.equal('idToken',localStorage.getItem("auth0:authUser"))
         });
 
         test('id token property will be set', function () {
           var element = fixture('basic');
-          element.queryParams = {};
           element.options = {auth: {scope: 'openId'}};
-          element._init('auth0-clientId', 'auth0-domain', {});
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
           assert.equal('idToken', element.idToken)
         });
       });
@@ -406,15 +387,13 @@
         test('silent authentication should callback with query param', function() {
           var element = fixture('basic');
           element.options = {auth: {scope: 'openId'}};
-          element.queryParams = {};
-          element._init('auth0-clientId', 'auth0-domain', {});
+          element._init('auth0-clientId', 'auth0-domain', {auth: {scope: 'openId'}}, {});
         });
 
         test('on silent authtentication, results should be posted back to parent', function() {
           var spy = sinon.stub(parent, 'postMessage');
           var element = fixture('basic');
-          element.queryParams = {'sso-silent-auth': true};
-          element._init('auth0-clientId', 'auth0-domain', {});
+          element._init('auth0-clientId', 'auth0-domain', {}, {'sso-silent-auth': true});
           sinon.assert.calledWith(spy, {error: 'error'}, window.location.origin)
         })
       });

@@ -65,7 +65,7 @@
               clientID:     clientId
             })
         );
-        if(this.queryParams['sso-silent-auth']){
+        if(queryParams['sso-silent-auth']){
           this.auth0.parseHash(window.location.hash, function (err, response) {
             parent.postMessage(err || response, window.location.origin);
           });
