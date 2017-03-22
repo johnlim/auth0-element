@@ -53,6 +53,17 @@
           auth0.restore();
         });
 
+        test('_init is called executed only when all parameters are defined', function() {
+          var element = fixture('basic');
+          var spy = sinon.stub(element, '_init');
+          element.queryParams = {};
+          element.options = {};
+          element.clientId = 'auth0-clientId';
+          element.domain = 'auth0-domain';
+
+          sinon.assert.calledWith(spy,'auth0-clientId', 'auth0-domain', {}, {})
+        });
+
         test('signOut logs the user out of application session by clearing localStorage', function() {
           var element = fixture('basic');
           element.queryParams = {};
