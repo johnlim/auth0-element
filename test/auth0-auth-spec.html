@@ -1,15 +1,15 @@
 <!doctype html>
 
 <html>
-  <head>
-    <title>auth0-auth test</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
-    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
-    <script src="../../web-component-tester/browser.js"></script>
+<head>
+  <title>auth0-auth test</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+  <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+  <script src="../../web-component-tester/browser.js"></script>
 
-    <link rel="import" href="../auth0-auth.html">
-  </head>
+  <link rel="import" href="../auth0-auth.html">
+</head>
   <body>
 
     <test-fixture id="basic">
@@ -30,19 +30,21 @@
       };
 
       suite('auth0-auth', function() {
-        var auth0Lock, auth0, stubAuthorize;
-        stubAuthorize =  sinon.stub().returns("");
+        var auth0Lock, auth0 ;
         setup(function () {
           auth0Lock = sinon.stub(window, 'Auth0Lock').returns({
             show: function() {}
           });
           auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
-            parseHash: function(options, fn){return fn()},
-            getSSOData: function(fn) {
-              return fn(null, {})
+            parseHash: function (options, fn) {
+              return fn(null, {accessToken: 'accessToken', idToken: 'idToken'})
             },
-            logout: function () {},
-            authorize: stubAuthorize
+            client: {
+              userInfo: function (accessToken, fn) {
+                return fn(null, {user: 'userInfo'})
+              }
+            },
+            logout: function () {}
           });
         });
 
@@ -51,23 +53,21 @@
           auth0.restore();
         });
 
-        test('Should redirect to hosted login page if useHostedPages set to true', function(done) {
+        test('_init is called executed only when all parameters are defined', function() {
           var element = fixture('basic');
-          element.hostedPages = true;
-          element.domain = 'auth0-domain';
+          var spy = sinon.stub(element, '_init');
+          element.queryParams = {};
+          element.options = {};
           element.clientId = 'auth0-clientId';
-          element.options = {auth: 'authOptions'};
-          flush(function(){
-            sinon.assert.calledWith(stubAuthorize, element.options.auth);
-            assert.equal(stubAuthorize.callCount, 1);
-            done()
-          });
+          element.domain = 'auth0-domain';
+
+          sinon.assert.calledWith(spy,'auth0-clientId', 'auth0-domain', {}, {})
         });
 
         test('signOut logs the user out of application session by clearing localStorage', function() {
           var element = fixture('basic');
           //call _init so that auth0 will be initialised as it cannot be stubbed till its defined and we cannot assign it here as its set as read-only
-          element._init('auth0-clientId', 'auth0-domain', {});
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
           sinon.stub(element.auth0, 'logout');
           localStorage.setItem(element.localStorageKey, "abc");
           element.signOut();
@@ -78,7 +78,7 @@
           var element = fixture('basic');
           element.logoutRedirectTo = 'localHost';
           //call _init so that auth0 will be initialised as it cannot be stubbed till its defined and we cannot assign it here as its set as read-only
-          element._init('auth0-clientId', 'auth0-domain', {});
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
           var spy = sinon.stub(element.auth0, 'logout');
           element.signOut('abc');
 
@@ -89,7 +89,7 @@
           var element = fixture('basic');
           element.logoutRedirectTo = 'abc';
           //call _init so that auth0 will be initialised as it cannot be stubbed till its defined and we cannot assign it here as its set as read-only
-          element._init('auth0-clientId', 'auth0-domain', {});
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
           var spy = sinon.stub(element.auth0, 'logout');
           element.signOut();
           sinon.assert.calledWithExactly(spy, {returnTo: element.logoutRedirectTo, client_id: undefined}, {version: 'v2'});
@@ -107,9 +107,6 @@
           auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
             parseHash: function (options, fn) {
               return fn(null, {accessToken: 'accessToken', idToken: 'idToken'})
-            },
-            getSSOData: function (fn) {
-              return fn(null, {})
             },
             logout: function () {
             },
@@ -129,20 +126,26 @@
 
         test('User profile should be set', function () {
           var element = fixture('basic');
-          element._init('auth0-clientId', 'auth0-domain', {});
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
           assert(element.userProfile);
         });
 
         test('id token will be stored to local storage', function () {
           var element = fixture('basic');
-          element._init('auth0-clientId', 'auth0-domain', {});
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
           assert.equal('idToken',localStorage.getItem("auth0:authUser"))
         });
 
         test('access token will be stored to local storage', function () {
           var element = fixture('basic');
-          element._init('auth0-clientId', 'auth0-domain', {});
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
           assert.equal('accessToken',localStorage.getItem("auth0:accessToken"))
+        });
+
+        test('id token property will be set', function () {
+          var element = fixture('basic');
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
+          assert.equal('idToken', element.idToken)
         });
       });
 
@@ -157,7 +160,7 @@
 
         teardown(function () {
           auth0Lock.restore();
-//          auth0.restore();
+    //          auth0.restore();
         });
 
         test('User profile should NOT be set if authResult is null', function () {
@@ -165,12 +168,13 @@
             parseHash: function (options, fn) {
               return fn(null, null)
             },
-            getSSOData: function(fn) {
-              return fn(null, {})
-            },
+            renewAuth: function(options, fn) {
+              return fn({}, null)
+            }
           });
           var element = fixture('basic');
-          element._init('auth0-clientId', 'auth0-domain', {});
+          element.options = {auth: {scope: 'openId'}};
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
           assert(!element.userProfile);
           auth0.restore();
         });
@@ -180,12 +184,13 @@
             parseHash: function (options, fn) {
               return fn(null, {idToken: 'idToken'})
             },
-            getSSOData: function(fn) {
-              return fn(null, {})
-            },
+            renewAuth: function(options, fn) {
+              return fn({}, null)
+            }
           });
           var element = fixture('basic');
-          element._init('auth0-clientId', 'auth0-domain', {});
+          element.options = {auth: {scope: 'openId'}};
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
           assert(!element.userProfile);
           auth0.restore();
         });
@@ -195,12 +200,13 @@
             parseHash: function (options, fn) {
               return fn(null, {accessToken: 'accessToken'})
             },
-            getSSOData: function(fn) {
-              return fn(null, {})
-            },
+            renewAuth: function(options, fn) {
+              return fn({}, null)
+            }
           });
           var element = fixture('basic');
-          element._init('auth0-clientId', 'auth0-domain', {});
+          element.options = {auth: {scope: 'openId'}};
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
           assert(!element.userProfile);
           auth0.restore();
         });
@@ -208,48 +214,67 @@
         test('User should be redirected to login', function () {
           auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
             parseHash: function (options, fn) {
-              assert.equal(window.location.hash, options);
               return fn(null, {error: 'error'})
             },
-            getSSOData: function(fn) {
-              return fn(null, {})
-            },
+            renewAuth: function(options, fn) {
+              return fn({}, null)
+            }
           });
           var element = fixture('basic');
-          element._init('auth0-clientId', 'auth0-domain', {});
+          element.options = {auth: {scope: 'openId'}};
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
           assert.equal(stubLockDotShow.callCount, 1);
           auth0.restore();
         });
+
+        test('Should redirect to hosted login page if useHostedPages set to true', function() {
+          var stubAuthorize =  sinon.stub().returns("");
+          auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
+            parseHash: function (options, fn) {
+              return fn(null, {error: 'error'})
+            },
+            renewAuth: function(options, fn) {
+              return fn({}, null)
+            },
+            authorize: stubAuthorize
+          });
+          var element = fixture('basic');
+          element.hostedPages = true;
+          element.options = {auth: 'authOptions'};
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
+          sinon.assert.calledWith(stubAuthorize, element.options.auth);
+          assert.equal(stubAuthorize.callCount, 1);
+          auth0.restore();
+        });
+
       });
 
-      suite('Auth0 bug? - parseHash)', function() {
+      suite('Auth0 bug? - parseHash', function() {
         test('must be called with window.location.hash', function () {
           var auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
             parseHash: function (options, fn) {
               assert.equal(window.location.hash, options);
               return fn(null, {error: 'error'})
             },
-            getSSOData: function(fn) {
-              return fn(null, {})
-            },
+            renewAuth: function(options, fn) {
+              return fn({}, null)
+            }
           });
           auth0Lock = sinon.stub(window, 'Auth0Lock').returns({
             show: function() {}
           });
           var element = fixture('basic');
-          element._init('auth0-clientId', 'auth0-domain', {});
+          element.options = {auth: {scope: 'openId'}};
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
           auth0.restore();
         });
 
       });
 
       suite('When user is already logged in', function() {
-        var auth0Lock, auth0;
+        var auth0;
         setup(function () {
           setLocalStorage();
-//          auth0Lock = sinon.stub(window, 'Auth0Lock').returns({
-//            show: function() {}
-//          });
           auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
             client: {
               userInfo: function (accessToken, fn) {
@@ -258,27 +283,121 @@
             }
           });
         });
-//
+
         teardown(function () {
           clearLocalStorage();
-//          auth0Lock.restore();
           auth0.restore();
         });
 
         test('User profile should be set', function() {
           var element = fixture('basic');
-          element._init('auth0-clientId', 'auth0-domain', {});
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
           assert(element.userProfile);
+        });
+
+
+        test('id token property will be set', function () {
+          var element = fixture('basic');
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
+          assert.equal('idToken', element.idToken)
         });
 
         test('user should be redirected to login if token has expired', function() {
           assert(!element.userProfile);
-
         });
 
 
       });
-//      suite('Calls SSO when not logged in', function() {})
+
+      suite('When there is an active SSO session', function() {
+        var auth0;
+        setup(function () {
+          clearLocalStorage();
+          auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
+            parseHash: function (options, fn) {
+              return fn(null, {error: 'error'})
+            },
+            renewAuth: function(options, fn) {
+              return fn(null, {accessToken: 'accessToken', idToken: 'idToken'})
+            },
+            client: {
+              userInfo: function (accessToken, fn) {
+                return fn(null, {user: 'userInfo'})
+              }
+            }
+          });
+        });
+
+        teardown(function () {
+          clearLocalStorage();
+          auth0.restore();
+        });
+
+        test('User profile should be set', function() {
+          var element = fixture('basic');
+          element.options = {auth: {scope: 'openId'}};
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
+          assert(element.userProfile);
+        });
+
+        test('access token should be stored to local storage', function () {
+          var element = fixture('basic');
+          element.options = {auth: {scope: 'openId'}};
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
+          assert.equal('accessToken',localStorage.getItem("auth0:accessToken"))
+        });
+
+        test('id token should be stored to local storage', function () {
+          var element = fixture('basic');
+          element.options = {auth: {scope: 'openId'}};
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
+          assert.equal('idToken',localStorage.getItem("auth0:authUser"))
+        });
+
+        test('id token property will be set', function () {
+          var element = fixture('basic');
+          element.options = {auth: {scope: 'openId'}};
+          element._init('auth0-clientId', 'auth0-domain', {}, {});
+          assert.equal('idToken', element.idToken)
+        });
+      });
+
+      suite('When there is an active SSO session', function() {
+        var auth0;
+        setup(function () {
+          auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
+            parseHash: function (options, fn) {
+              return fn(null, {error: 'error'})
+            },
+            renewAuth: function(options, fn) {
+              assert.deepEqual({
+                redirectUri: window.location.origin + '?sso-silent-auth=true',
+                usePostMessage: true,
+                scope: 'openId'
+              }, options);
+              return
+            }
+          });
+        });
+
+        teardown(function () {
+          auth0.restore();
+        });
+
+        test('silent authentication should callback with query param', function() {
+          var element = fixture('basic');
+          element.options = {auth: {scope: 'openId'}};
+          element._init('auth0-clientId', 'auth0-domain', {auth: {scope: 'openId'}}, {});
+        });
+
+        test('on silent authtentication, results should be posted back to parent', function() {
+          var spy = sinon.stub(parent, 'postMessage');
+          var element = fixture('basic');
+          element._init('auth0-clientId', 'auth0-domain', {}, {'sso-silent-auth': true});
+          sinon.assert.calledWith(spy, {error: 'error'}, window.location.origin)
+        })
+      });
+
     </script>
   </body>
 </html>

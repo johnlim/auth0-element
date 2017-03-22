@@ -50,46 +50,49 @@
           hostedPages: {
             type: Boolean,
             value: false
+          },
+          queryParams: {
+            type: Object
           }
         }
       }
 
       static get observers() {
         return [
-          '_setLocalStorage(localStorageKey, idToken)',
-          '_init(clientId, domain, options)'
+          '_init(clientId, domain, options, queryParams)'
         ]
       }
 
-      _init(clientId, domain, options) {
-        if(clientId !== undefined && domain !== undefined && options !== undefined) {
+      _init(clientId, domain, options, queryParams) {
+        if(clientId !== undefined && domain !== undefined && options !== undefined && queryParams !== undefined) {
           // instantiate Lock
           this._setAuth0(new auth0.WebAuth({
-                domain:       domain,
-                clientID:     clientId
+                domain: domain,
+                clientID: clientId
               })
           );
+          if (queryParams['sso-silent-auth']) {
+            this.auth0.parseHash(window.location.hash, function (err, response) {
+              parent.postMessage(err || response, window.location.origin);
+            });
+            return
+          }
 
           this._parseHash();
         }
       }
 
-      _setLocalStorage(localStorageKey, idToken) {
-      var value = this.idToken;
-      localStorage.setItem(this.localStorageKey, value);
-      }
-
       _parseHash() {
         var idToken = localStorage.getItem('auth0:authUser');
         var accessToken = localStorage.getItem('auth0:accessToken');
-
         if (idToken && accessToken) {
           this.auth0.client.userInfo(accessToken, function(err, user) {
             this._setUserProfile(user);
+            this._setIdToken(idToken);
+
           }.bind(this));
           return
         }
-
         this.auth0.parseHash(window.location.hash, function(err, authResult) {
           if (authResult && authResult.accessToken && authResult.idToken) {
             this.auth0.client.userInfo(authResult.accessToken, function(err, user) {
@@ -98,20 +101,15 @@
             window.location.hash = '';
             localStorage.setItem('auth0:authUser', authResult.idToken);
             localStorage.setItem('auth0:accessToken', authResult.accessToken);
+            this._setIdToken(authResult.idToken);
             return
           } else {
-            // user is not logged, check whether there is an SSO session or not
-  //              this.auth0.renewAuth({scope: (options.auth && options.auth.params && options.auth.params.scope) || 'openid'}, function(err, data) {
-            this.auth0.getSSOData(function(err, data) {
-              if (!err && data.sso) {
-                // there is! redirect to Auth0 for SSO
-                this.auth0.signin({
-                  // If the user wanted to go to some other URL, you can track it with `state`
-                  state: this.getQueryParameter('targetUrl'),
-                  callbackOnLocationHash: true,
-                  scope: (options.auth && options.auth.params && options.auth.params.scope) || 'openid'
-                });
-              } else {
+            this.auth0.renewAuth({
+              redirectUri: window.location.origin + '?sso-silent-auth=true',
+              scope: this.options.auth.scope,
+              usePostMessage: true
+            }, function (err, result) {
+              if (err) {
                 // regular login
                 if(this.hostedPages) {
                   this.auth0.authorize(this.options.auth);
@@ -120,18 +118,16 @@
                 //else
                 var lock = new Auth0Lock(this.clientId, this.domain, this.options);
                 lock.show();
+              } else {
+                this.auth0.client.userInfo(result.accessToken, function(err, user) {
+                  this._setUserProfile(user);
+                }.bind(this));
+                localStorage.setItem('auth0:authUser', result.idToken);
+                localStorage.setItem('auth0:accessToken', result.accessToken);
+                this._setIdToken(result.idToken);
               }
             }.bind(this));
           }
-        }.bind(this));
-      }
-
-      _getProfile(idToken) {
-        this.auth0.getProfile(idToken, function (err, profile) {
-          if (err) {
-            this.signOut(this.clientId);
-          }
-          this._setUserProfile(profile);
         }.bind(this));
       }
 
@@ -139,7 +135,10 @@
         localStorage.removeItem(this.localStorageKey);
         this.auth0.logout({returnTo: this.logoutRedirectTo, client_id: clientId}, {version: 'v2'});
       }
+
     };
+
     customElements.define(Auth0Auth.is, Auth0Auth);
+
   </script>
 </dom-module>
