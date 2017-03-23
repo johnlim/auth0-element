@@ -1,3 +1,4 @@
+<link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="auth0.html">
 
 <dom-module id="auth0-delegate">
@@ -33,20 +34,21 @@
       ],
 
       _getDelegateToken: function() {
-        var auth0 = new Auth0({
-            domain:       this.domain,
-            clientID:     this.clientId
-          });
+        var auth = new auth0.Authentication({
+          domain:       this.domain,
+          clientID:     this.clientId
+        });
         var options = {
-          id_token : this.idToken,
-          api : this.options.api,
-          scope : this.options.scope,
-          target: this.clientId
+          id_token: this.idToken,
+          apiType: this.options.api,
+          scope: this.options.scope,
+          target: this.clientId,
+          grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer'
         };
         // Make a call to the Auth0 '/delegate'
-        auth0.getDelegationToken(options, function(err, result) {
+        auth.delegation(options, function(err, result) {
           if(!err) {
-            this._setDelegateToken(result.id_token);
+            this._setDelegateToken(result.idToken);
           }
         }.bind(this));
       }
