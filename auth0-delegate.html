@@ -34,7 +34,7 @@
         ]
       }
 
-      _getDelegateToken() {
+      _getDelegateToken(domain, clientId, idToken, options) {
         if(clientId !== undefined && domain !== undefined && options !== undefined && idToken !== undefined) {
           var auth = new auth0.Authentication({
             domain:       this.domain,
@@ -56,5 +56,7 @@
         }
       }
     }
+
+    customElements.define(Auth0Delegate.is, Auth0Delegate);
   </script>
 </dom-module>
