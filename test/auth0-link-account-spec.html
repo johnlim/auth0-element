@@ -1,0 +1,64 @@
+<!doctype html>
+
+<html>
+  <head>
+    <title>auth0-auth test</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../../web-component-tester/browser.js"></script>
+
+    <link rel="import" href="../auth0-link-account.html">
+  </head>
+  <body>
+
+    <test-fixture id="basic">
+      <template>
+        <auth0-link-account></auth0-link-account>
+      </template>
+    </test-fixture>
+
+    <script>
+      var clearLocalStorage = function() {
+        localStorage.removeItem('auth0:link-account');
+      };
+
+      suite('auth0-link-account', function() {
+        teardown(function () {
+          clearLocalStorage()
+        });
+
+        test('should set key value pair in localStorage when linking is initiated', function(done) {
+          var element = fixture('basic');
+          element.queryParams = {};
+          element.options = {};
+          element.clientId = 'auth0-clientId';
+          element.domain = 'auth0-domain';
+          element.connection = 'google-oauth2';
+          flush(function () {
+            assert.equal('google-oauth2',localStorage.getItem("auth0:link-account"))
+            done()
+          })
+        });
+
+        test('should show auth0 lock when linking is initiated', function(done) {
+          var element = fixture('basic');
+          stubLockDotShow =  sinon.stub().returns("");
+          auth0Lock = sinon.stub(window, 'Auth0Lock').returns({
+            show: stubLockDotShow
+          });
+          element.queryParams = {};
+          element.options = {};
+          element.clientId = 'auth0-clientId';
+          element.domain = 'auth0-domain';
+          element.connection = 'google-oauth2';
+          flush(function () {
+            assert.equal(stubLockDotShow.callCount, 1);
+            done()
+          })
+        });
+      });
+
+    </script>
+  </body>
+</html>

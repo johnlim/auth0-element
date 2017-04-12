@@ -1,0 +1,41 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="auth0-lock.html">
+
+<dom-module id="auth0-link-account">
+
+  <template>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'auth0-link-account',
+
+      properties: {
+        connection: {
+          type: String
+        },
+        clientId: {
+          type: String
+        },
+        domain: {
+          type: String
+        },
+        options: {
+          type: Object
+        }
+      },
+
+      observers: [
+          '_setLocalStorage(connection)'
+      ],
+
+      _setLocalStorage: function(connection) {
+        localStorage.setItem('auth0:link-account', connection);
+        var lock = new Auth0Lock(this.clientId, this.domain, this.options);
+        lock.show();
+      }
+    });
+
+  </script>
+</dom-module>
