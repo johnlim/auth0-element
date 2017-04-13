@@ -45,7 +45,8 @@
           var element = fixture('basic');
           stubLockDotShow =  sinon.stub().returns("");
           auth0Lock = sinon.stub(window, 'Auth0Lock').returns({
-            show: stubLockDotShow
+            show: stubLockDotShow,
+            on: function () {}
           });
           element.queryParams = {};
           element.options = {};
