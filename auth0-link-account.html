@@ -27,12 +27,15 @@
       },
 
       observers: [
-          '_setLocalStorage(connection)'
+          '_initAccountLinking(connection)'
       ],
 
-      _setLocalStorage: function(connection) {
+      _initAccountLinking: function(connection) {
         localStorage.setItem('auth0:link-account', connection);
         var lock = new Auth0Lock(this.clientId, this.domain, this.options);
+        lock.on('hide', function () {
+          localStorage.removeItem('auth0:link-account');
+        });
         lock.show();
       }
     });
