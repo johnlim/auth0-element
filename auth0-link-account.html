@@ -31,8 +31,10 @@
       ],
 
       _initAccountLinking: function(connection) {
+        var options = Object.assign({}, this.options);
+        options.allowedConnections = [connection];
         localStorage.setItem('auth0:link-account', connection);
-        var lock = new Auth0Lock(this.clientId, this.domain, this.options);
+        var lock = new Auth0Lock(this.clientId, this.domain, options);
         lock.on('hide', function () {
           localStorage.removeItem('auth0:link-account');
         });
