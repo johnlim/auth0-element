@@ -24,8 +24,18 @@
       };
 
       suite('auth0-link-account', function() {
+        var auth0Lock, stubLockDotShow;
+        setup(function () {
+          stubLockDotShow =  sinon.stub().returns("");
+          auth0Lock = sinon.stub(window, 'Auth0Lock').returns({
+            show: stubLockDotShow,
+            on: function () {}
+          });
+        });
+
         teardown(function () {
-          clearLocalStorage()
+          auth0Lock.restore();
+          clearLocalStorage();
         });
 
         test('should set key value pair in localStorage when linking is initiated', function(done) {
@@ -43,11 +53,6 @@
 
         test('should show auth0 lock when linking is initiated', function(done) {
           var element = fixture('basic');
-          stubLockDotShow =  sinon.stub().returns("");
-          auth0Lock = sinon.stub(window, 'Auth0Lock').returns({
-            show: stubLockDotShow,
-            on: function () {}
-          });
           element.queryParams = {};
           element.options = {};
           element.clientId = 'auth0-clientId';
@@ -55,6 +60,19 @@
           element.connection = 'google-oauth2';
           flush(function () {
             assert.equal(stubLockDotShow.callCount, 1);
+            done()
+          })
+        });
+
+        test('should use the connection specified', function(done) {
+          var element = fixture('basic');
+          element.queryParams = {};
+          element.options = {allowedConnections: ['github']};
+          element.clientId = 'auth0-clientId';
+          element.domain = 'auth0-domain';
+          element.connection = 'google-oauth2';
+          flush(function () {
+            sinon.assert.calledWith(auth0Lock, 'auth0-clientId', 'auth0-domain', {allowedConnections: ['google-oauth2']});
             done()
           })
         });
