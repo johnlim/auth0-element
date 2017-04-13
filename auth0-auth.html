@@ -71,10 +71,22 @@
                 clientID: clientId
               })
           );
+
           if (queryParams['sso-silent-auth']) {
             this.auth0.parseHash(window.location.hash, function (err, response) {
               parent.postMessage(err || response, window.location.origin);
             });
+            return
+          }
+
+          if (localStorage.getItem('auth0:link-account')) {
+            localStorage.removeItem('auth0:link-account');
+            this.auth0.parseHash(window.location.hash, function(err, authResult) {
+              if (authResult && authResult.idToken) {
+                window.location.hash = '';
+                this.linkAccount(authResult.idToken);
+              }
+            }.bind(this));
             return
           }
 
@@ -135,6 +147,24 @@
         localStorage.removeItem(this.localStorageKey);
         this.auth0.logout({returnTo: this.logoutRedirectTo, client_id: clientId}, {version: 'v2'});
       }
+
+      linkAccount(secondaryJwt) {
+      var primaryJWT = localStorage.getItem('auth0:authUser');
+      var primaryAccessToken  = localStorage.getItem('auth0:accessToken');
+
+
+      this.auth0.client.userInfo(primaryAccessToken, function(err, user) {
+        var primaryUserId = user.user_id;
+        var auth0Management= new auth0.Management({
+          domain: this.domain,
+          token: primaryJWT
+        });
+        auth0Management.linkUser(primaryUserId, secondaryJwt, function () {
+          this.auth0.client.userInfo(primaryAccessToken, function(err, user) {
+            this._setUserProfile(user);
+          }.bind(this));
+        }.bind(this))
+      }.bind(this));
 
     };
 

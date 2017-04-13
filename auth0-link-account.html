@@ -7,30 +7,34 @@
   </template>
 
   <script>
-    Polymer({
-
-      is: 'auth0-link-account',
-
-      properties: {
-        connection: {
-          type: String
-        },
-        clientId: {
-          type: String
-        },
-        domain: {
-          type: String
-        },
-        options: {
-          type: Object
+    class Auth0LinkAccount extends Polymer.Element {
+      static get is() {return 'auth0-link-account'}
+      static get properties() {
+        return {
+          connection: {
+            type: String
+          },
+          clientId: {
+            type: String
+          },
+          domain: {
+            type: String
+          },
+          options: {
+            type: Object
+          }
         }
-      },
+      }
 
-      observers: [
+      static get observers() {
+        return [
           '_initAccountLinking(connection)'
-      ],
+        ]
+      }
 
-      _initAccountLinking: function(connection) {
+      _initAccountLinking(connection) {
+        if(!connection) {return}
+
         var options = Object.assign({}, this.options);
         options.allowedConnections = [connection];
         localStorage.setItem('auth0:link-account', connection);
@@ -40,7 +44,8 @@
         });
         lock.show();
       }
-    });
+    }
 
+    customElements.define(Auth0LinkAccount.is, Auth0LinkAccount);
   </script>
 </dom-module>
