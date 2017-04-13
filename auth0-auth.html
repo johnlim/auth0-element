@@ -81,6 +81,7 @@
               this.linkAccount(authResult.idToken);
             }
           }.bind(this));
+          return
         }
 
         this._parseHash();
@@ -152,7 +153,10 @@
             token: primaryJWT
           });
           auth0Management.linkUser(primaryUserId, secondaryJwt, function () {
-          })
+            this.auth0.client.userInfo(accessToken, function(err, user) {
+              this._setUserProfile(user);
+            }.bind(this));
+          }.bind(this))
         }.bind(this));
       }
 
