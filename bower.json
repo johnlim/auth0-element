@@ -14,7 +14,9 @@
   "dependencies": {
     "polymer": "Polymer/polymer#^2.0.0",
     "auth0.js": "^8.3.0",
-    "auth0-lock": "^10.2.1"
+    "auth0-lock": "^10.2.1",
+    "jwt-decode": "^2.2.0",
+    "iron-localstorage": "^1.0.6"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#2.0.0",
