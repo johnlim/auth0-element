@@ -2,10 +2,14 @@
 
 <link rel="import" href="auth0.html">
 <link rel="import" href="auth0-lock.html">
+<link rel="import" href="jwt-manager.html">
 
 <dom-module id="auth0-auth">
 
   <template>
+    <template is="dom-if" if="{{jwtManager}}">
+      <jwt-manager name="auth0:authUser" on-auth-token="_handleTokenEvent"></jwt-manager>
+    </template>
   </template>
 
   <script>
@@ -53,6 +57,10 @@
           },
           queryParams: {
             type: Object
+        },
+        jwtManager: {
+          type: Boolean,
+          value: false
           }
         }
       }
@@ -142,6 +150,11 @@
           }
         }.bind(this));
       }
+
+      _handleTokenEvent: function (event) {
+        if(event.detail.status === 'EXPIRED') {
+          this.signOut(this.clientId)
+        }
 
       signOut(clientId) {
         localStorage.removeItem(this.localStorageKey);

@@ -398,6 +398,39 @@
         })
       });
 
+      suite('Handling of token events', function() {
+        test('should be enabled only if client explicitly enables it', function(done) {
+          var element = fixture('basic');
+          element.jwtManager = true;
+          flush(function () {
+            assert(element.$$('jwt-manager'));
+            done();
+          })
+        });
+
+        test('should be disabled unless client enables it', function(done) {
+          var element = fixture('basic');
+          flush(function () {
+            assert(!element.$$('jwt-manager'));
+            done();
+          })
+        });
+
+        test('should log user out when token has expired', function(done) {
+          var element = fixture('basic');
+          element.jwtManager = true;
+          element.clientId = 'abc';
+          var spy = sinon.stub(element, 'signOut');
+          flush(function () {
+            element.addEventListener('auth-token', function () {
+              sinon.assert.calledWith(spy, element.clientId);
+              done()
+            });
+            element.$$('jwt-manager').fire('auth-token', {status: 'EXPIRED'})
+          })
+        });
+      });
+
     </script>
   </body>
 </html>
