@@ -1,4 +1,5 @@
 <link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-ajax/iron-ajax.html">
 <link rel="import" href="auth0.html">
 <link rel="import" href="auth0-lock.html">
 <link rel="import" href="jwt-manager.html">
@@ -9,6 +10,10 @@
     <template is="dom-if" if="{{jwtManager}}">
       <jwt-manager name="auth0:authUser" on-auth-token="_handleTokenEvent"></jwt-manager>
     </template>
+    <iron-ajax
+            id="ajax"
+            method="DELETE">
+    </iron-ajax>
   </template>
 
   <script>
@@ -171,6 +176,20 @@
               this._setUserProfile(user);
             }.bind(this));
           }.bind(this))
+        }.bind(this));
+      },
+
+      unlinkAccount: function (connection) {
+        var primaryAccessToken  = localStorage.getItem('auth0:accessToken');
+        var idToken = localStorage.getItem('auth0:authUser');
+        this.auth0.client.userInfo(primaryAccessToken, function(err, user) {
+          var primaryUserId = user.user_id;
+          var secondaryUserId = user.identities.filter(function (identity) {
+            return identity.connection === connection
+          })[0].user_id;
+          this.$.ajax.url = 'https://' + this.domain + '/api/v2/users/' + primaryUserId + '/identities/' + connection + '/' + secondaryUserId;
+          this.$.ajax.headers = {Authorization: "Bearer " + idToken};
+          this.$.ajax.generateRequest();
         }.bind(this));
       }
 
