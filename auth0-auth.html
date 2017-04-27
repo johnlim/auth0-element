@@ -185,20 +185,23 @@
       },
 
       unlinkAccount: function (connection) {
-        var primaryAccessToken  = localStorage.getItem('auth0:accessToken');
-        var idToken = localStorage.getItem('auth0:authUser');
-        this.auth0.client.userInfo(primaryAccessToken, function(err, user) {
-          var primaryUserId = user.user_id;
-          var secondaryUserId = user.identities.filter(function (identity) {
-            return identity.connection === connection
-          })[0].user_id;
-          this.$.ajax.url = 'https://' + this.domain + '/api/v2/users/' + primaryUserId + '/identities/' + connection + '/' + secondaryUserId;
-          this.$.ajax.headers = {Authorization: "Bearer " + idToken};
-          this.$.ajax.generateRequest();
+        return new Promise(function (resolve, reject) {
+          var primaryAccessToken  = localStorage.getItem('auth0:accessToken');
+          var idToken = localStorage.getItem('auth0:authUser');
+          this.auth0.client.userInfo(primaryAccessToken, function(err, user) {
+            var primaryUserId = user.user_id;
+            var secondaryUserId = user.identities.filter(function (identity) {
+              return identity.connection === connection
+            })[0].user_id;
+            this.$.ajax.url = 'https://' + this.domain + '/api/v2/users/' + primaryUserId + '/identities/' + connection + '/' + secondaryUserId;
+            this.$.ajax.headers = {Authorization: "Bearer " + idToken};
+            var request = this.$.ajax.generateRequest();
+            request.completes.then(function() {resolve()})
+                             .catch(function(error) {reject(error)})
+          }.bind(this));
         }.bind(this));
       }
     };
-
     customElements.define(Auth0Auth.is, Auth0Auth);
 
   </script>
