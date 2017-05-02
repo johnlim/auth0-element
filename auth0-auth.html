@@ -127,7 +127,7 @@
               scope: this.options.auth.scope,
               usePostMessage: true
             }, function (err, result) {
-              if (err) {
+              if (err || !result || !result.idToken || !result.accessToken) {
                 // regular login
                 if(this.hostedPages) {
                   this.auth0.authorize(this.options.auth);
