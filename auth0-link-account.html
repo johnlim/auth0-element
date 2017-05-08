@@ -12,7 +12,8 @@
       static get properties() {
         return {
           connection: {
-            type: String
+          type: String,
+          notify: true
           },
           clientId: {
             type: String
@@ -41,7 +42,8 @@
         var lock = new Auth0Lock(this.clientId, this.domain, options);
         lock.on('hide', function () {
           localStorage.removeItem('auth0:link-account');
-        });
+          this.connection = null;
+        }.bind(this));
         lock.show();
       }
     }
