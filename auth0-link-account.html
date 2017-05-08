@@ -13,7 +13,8 @@
 
       properties: {
         connection: {
-          type: String
+          type: String,
+          notify: true
         },
         clientId: {
           type: String
@@ -31,13 +32,15 @@
       ],
 
       _initAccountLinking: function(connection) {
+        if(!connection) return;
         var options = Object.assign({}, this.options);
         options.allowedConnections = [connection];
         localStorage.setItem('auth0:link-account', connection);
         var lock = new Auth0Lock(this.clientId, this.domain, options);
         lock.on('hide', function () {
           localStorage.removeItem('auth0:link-account');
-        });
+          this.connection = null;
+        }.bind(this));
         lock.show();
       }
     });
