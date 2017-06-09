@@ -155,10 +155,11 @@
         }.bind(this));
       }
 
-      _handleTokenEvent: function (event) {
-        if(event.detail.status === 'EXPIRED') {
+      _handleTokenEvent(event) {
+        if (event.detail.status === 'EXPIRED') {
           this.signOut(this.clientId)
         }
+      }
 
       signOut(clientId) {
         localStorage.removeItem(this.localStorageKey);
@@ -182,9 +183,9 @@
             }.bind(this));
           }.bind(this))
         }.bind(this));
-      },
+      }
 
-      unlinkAccount: function (connection) {
+      unlinkAccount(connection) {
         return new Promise(function (resolve, reject) {
           var primaryAccessToken = localStorage.getItem('auth0:accessToken');
           var idToken = localStorage.getItem('auth0:authUser');
