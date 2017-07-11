@@ -7,9 +7,9 @@
 <dom-module id="auth0-auth">
 
   <template>
-    <template is="dom-if" if="{{jwtManager}}">
-      <jwt-manager name="auth0:authUser" on-auth-token="_handleTokenEvent"></jwt-manager>
-    </template>
+    <!--<template is="dom-if" if="{{jwtManager}}">-->
+    <jwt-manager id="jwtManager" name="auth0:authUser" jwt="[[jwt]]" on-auth-token="_handleTokenEvent"></jwt-manager>
+    <!--</template>-->
     <iron-ajax
             id="ajax"
             method="DELETE">
@@ -103,11 +103,11 @@
       _parseHash: function(){
         var idToken = localStorage.getItem('auth0:authUser');
         var accessToken = localStorage.getItem('auth0:accessToken');
-        if (idToken && accessToken) {
+        if (idToken && accessToken && this.$.jwtManager.tokenIsValid(idToken)) {
           this.auth0.client.userInfo(accessToken, function(err, user) {
             this._setUserProfile(user);
             this._setIdToken(idToken);
-
+            this.$.jwtManager.monitorExpiry(idToken);
           }.bind(this));
           return
         }
@@ -120,6 +120,7 @@
             localStorage.setItem('auth0:authUser', authResult.idToken);
             localStorage.setItem('auth0:accessToken', authResult.accessToken);
             this._setIdToken(authResult.idToken);
+            this.jwt = authResult.idToken;
             return
           } else {
             this.auth0.renewAuth({
@@ -137,11 +138,13 @@
                 var lock = new Auth0Lock(this.clientId, this.domain, this.options);
                 lock.show();
               } else {
+                console.log('renewAuth........')
                 this.auth0.client.userInfo(result.accessToken, function(err, user) {
                   this._setUserProfile(user);
                 }.bind(this));
-                localStorage.setItem('auth0:authUser', result.idToken);
+//                localStorage.setItem('auth0:authUser', result.idToken);
                 localStorage.setItem('auth0:accessToken', result.accessToken);
+                this.jwt = result.idToken;
                 this._setIdToken(result.idToken);
               }
             }.bind(this));
@@ -151,7 +154,31 @@
 
       _handleTokenEvent: function (event) {
         if(event.detail.status === 'EXPIRED') {
-          this.signOut(this.clientId)
+          console.log('expired')
+          this.auth0.renewAuth({
+            redirectUri: window.location.origin + '?sso-silent-auth=true',
+            scope: this.options.auth.scope,
+            usePostMessage: true
+          }, function (err, result) {
+            if (err || !result || !result.idToken || !result.accessToken) {
+              // regular login
+              if(this.hostedPages) {
+                this.auth0.authorize(this.options.auth);
+                return
+              }
+              //else
+              var lock = new Auth0Lock(this.clientId, this.domain, this.options);
+              lock.show();
+            } else {
+              this.auth0.client.userInfo(result.accessToken, function(err, user) {
+                this._setUserProfile(user);
+              }.bind(this));
+              localStorage.setItem('auth0:authUser', result.idToken);
+              localStorage.setItem('auth0:accessToken', result.accessToken);
+              this._setIdToken(result.idToken);
+              this.jwt = result.idToken;
+            }
+          }.bind(this));
         }
       },
 

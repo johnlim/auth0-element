@@ -7,8 +7,7 @@
   <template>
     <iron-localstorage use-raw
                        name="[[name]]"
-                       value="{{jwt}}"
-                       on-iron-localstorage-load="_monitorExpiry">
+                       value="[[jwt]]">
     </iron-localstorage>
   </template>
 
@@ -30,16 +29,23 @@
       },
 
       observers: [
+        'monitorExpiry(jwt)'
       ],
 
-      _monitorExpiry: function (event) {
-        var decoded = jwt_decode(this.jwt);
+      monitorExpiry: function (jwt) {
+        console.log('_monitorExpiry')
+        var decoded = jwt_decode(jwt);
         var timeToExpiryInMilliseconds= decoded.exp * 1000 - Date.now();
 
         this.async(function () {
           this.fire('auth-token', {status: 'EXPIRED'})
         }.bind(this), timeToExpiryInMilliseconds)
+      },
 
+      tokenIsValid: function (jwt) {
+        var decoded = jwt_decode(jwt);
+        var timeToExpiryInMilliseconds= decoded.exp * 1000 - Date.now();
+        return timeToExpiryInMilliseconds > 0 ? true : false
       }
     });
 
