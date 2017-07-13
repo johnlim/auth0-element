@@ -2,14 +2,11 @@
 <link rel="import" href="../iron-ajax/iron-ajax.html">
 <link rel="import" href="auth0.html">
 <link rel="import" href="auth0-lock.html">
-<link rel="import" href="jwt-manager.html">
+<link rel="import" href="../jwt-decode/jwt-decode.html">
 
 <dom-module id="auth0-auth">
 
   <template>
-    <!--<template is="dom-if" if="{{jwtManager}}">-->
-    <jwt-manager id="jwtManager" name="auth0:authUser" jwt="[[jwt]]" on-auth-token="_handleTokenEvent"></jwt-manager>
-    <!--</template>-->
     <iron-ajax
             id="ajax"
             method="DELETE">
@@ -66,6 +63,9 @@
         jwtManager: {
           type: Boolean,
           value: false
+        },
+        expirationMonitor: {
+          type: Object
         }
       },
       observers: [
@@ -101,13 +101,13 @@
       },
 
       _parseHash: function(){
-        var idToken = localStorage.getItem('auth0:authUser');
-        var accessToken = localStorage.getItem('auth0:accessToken');
-        if (idToken && accessToken && this.$.jwtManager.tokenIsValid(idToken)) {
+        if (this._tokenIsValid()) {
+          var idToken = localStorage.getItem('auth0:authUser');
+          var accessToken = localStorage.getItem('auth0:accessToken');
           this.auth0.client.userInfo(accessToken, function(err, user) {
             this._setUserProfile(user);
             this._setIdToken(idToken);
-            this.$.jwtManager.monitorExpiry(idToken);
+            this._monitorExpiry();
           }.bind(this));
           return
         }
@@ -120,7 +120,7 @@
             localStorage.setItem('auth0:authUser', authResult.idToken);
             localStorage.setItem('auth0:accessToken', authResult.accessToken);
             this._setIdToken(authResult.idToken);
-            this.jwt = authResult.idToken;
+            this._monitorExpiry();
             return
           } else {
             this.auth0.renewAuth({
@@ -138,48 +138,68 @@
                 var lock = new Auth0Lock(this.clientId, this.domain, this.options);
                 lock.show();
               } else {
-                console.log('renewAuth........')
                 this.auth0.client.userInfo(result.accessToken, function(err, user) {
                   this._setUserProfile(user);
                 }.bind(this));
-//                localStorage.setItem('auth0:authUser', result.idToken);
+                localStorage.setItem('auth0:authUser', result.idToken);
                 localStorage.setItem('auth0:accessToken', result.accessToken);
-                this.jwt = result.idToken;
                 this._setIdToken(result.idToken);
+                this._monitorExpiry();
               }
             }.bind(this));
           }
         }.bind(this));
       },
 
-      _handleTokenEvent: function (event) {
-        if(event.detail.status === 'EXPIRED') {
-          console.log('expired')
-          this.auth0.renewAuth({
-            redirectUri: window.location.origin + '?sso-silent-auth=true',
-            scope: this.options.auth.scope,
-            usePostMessage: true
-          }, function (err, result) {
-            if (err || !result || !result.idToken || !result.accessToken) {
-              // regular login
-              if(this.hostedPages) {
-                this.auth0.authorize(this.options.auth);
-                return
-              }
-              //else
-              var lock = new Auth0Lock(this.clientId, this.domain, this.options);
-              lock.show();
-            } else {
-              this.auth0.client.userInfo(result.accessToken, function(err, user) {
-                this._setUserProfile(user);
-              }.bind(this));
-              localStorage.setItem('auth0:authUser', result.idToken);
-              localStorage.setItem('auth0:accessToken', result.accessToken);
-              this._setIdToken(result.idToken);
-              this.jwt = result.idToken;
+      _handleTokenExpiration: function (event) {
+        this.auth0.renewAuth({
+          redirectUri: window.location.origin + '?sso-silent-auth=true',
+          scope: this.options.auth.scope,
+          usePostMessage: true
+        }, function (err, result) {
+          if (err || !result || !result.idToken || !result.accessToken) {
+            // regular login
+            if(this.hostedPages) {
+              this.auth0.authorize(this.options.auth);
+              return
             }
-          }.bind(this));
+            //else
+            var lock = new Auth0Lock(this.clientId, this.domain, this.options);
+            lock.show();
+          } else {
+            this.auth0.client.userInfo(result.accessToken, function(err, user) {
+              this._setUserProfile(user);
+            }.bind(this));
+            localStorage.setItem('auth0:authUser', result.idToken);
+            localStorage.setItem('auth0:accessToken', result.accessToken);
+            this._setIdToken(result.idToken);
+            this._monitorExpiry();
+          }
+        }.bind(this));
+      },
+
+      _tokenIsValid: function () {
+        var idToken = localStorage.getItem('auth0:authUser');
+        var accessToken = localStorage.getItem('auth0:accessToken');
+        if (idToken && accessToken) {
+          var decoded = jwt_decode(idToken);
+          var timeToExpiryInMilliseconds= decoded.exp * 1000 - Date.now();
+          return timeToExpiryInMilliseconds > 0 ? true : false
         }
+        return false
+      },
+
+      _monitorExpiry: function () {
+        if(!this.jwtManager) {return}
+        var idToken = localStorage.getItem('auth0:authUser');
+        var decoded = jwt_decode(idToken);
+        var timeToExpiryInMilliseconds= decoded.exp * 1000 - Date.now();
+        if(this.expirationMonitor) {
+          this.cancelAsync(this.expirationMonitor)
+        }
+        this.expirationMonitor = this.async(function () {
+          this._handleTokenExpiration()
+        }.bind(this), timeToExpiryInMilliseconds)
       },
 
       signOut: function(clientId) {
