@@ -291,6 +291,9 @@
 
         test('User profile should be set', function() {
           var element = fixture('basic');
+          element._tokenIsValid = function () {
+            return true;
+          };
           element._init('auth0-clientId', 'auth0-domain', {}, {});
           assert(element.userProfile);
         });
@@ -298,11 +301,18 @@
 
         test('id token property will be set', function () {
           var element = fixture('basic');
+          element._tokenIsValid = function () {
+            return true;
+          };
           element._init('auth0-clientId', 'auth0-domain', {}, {});
           assert.equal('idToken', element.idToken)
         });
 
         test('user should be redirected to login if token has expired', function() {
+          var element = fixture('basic');
+          element._tokenIsValid = function () {
+            return false;
+          };
           assert(!element.userProfile);
         });
 
