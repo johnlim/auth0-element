@@ -64,13 +64,15 @@
           type: Boolean,
           value: false
         },
-        expirationMonitor: {
+        _expirationMonitor: {
           type: Object
         }
       },
       observers: [
-        '_init(clientId, domain, options, queryParams)'
+        '_init(clientId, domain, options, queryParams)',
+        '_monitorExpiry(userProfile, idToken, jwtManager)'
       ],
+
       _init: function(clientId, domain, options, queryParams) {
         // instantiate Lock
         this._setAuth0(new auth0.WebAuth({
@@ -107,20 +109,18 @@
           this.auth0.client.userInfo(accessToken, function(err, user) {
             this._setUserProfile(user);
             this._setIdToken(idToken);
-            this._monitorExpiry();
           }.bind(this));
           return
         }
         this.auth0.parseHash(window.location.hash, function(err, authResult) {
           if (authResult && authResult.accessToken && authResult.idToken) {
             this.auth0.client.userInfo(authResult.accessToken, function(err, user) {
+              localStorage.setItem('auth0:authUser', authResult.idToken);
+              localStorage.setItem('auth0:accessToken', authResult.accessToken);
               this._setUserProfile(user);
+              this._setIdToken(authResult.idToken);
             }.bind(this));
             window.location.hash = '';
-            localStorage.setItem('auth0:authUser', authResult.idToken);
-            localStorage.setItem('auth0:accessToken', authResult.accessToken);
-            this._setIdToken(authResult.idToken);
-            this._monitorExpiry();
             return
           } else {
             this.auth0.renewAuth({
@@ -139,19 +139,18 @@
                 lock.show();
               } else {
                 this.auth0.client.userInfo(result.accessToken, function(err, user) {
+                  localStorage.setItem('auth0:authUser', result.idToken);
+                  localStorage.setItem('auth0:accessToken', result.accessToken);
                   this._setUserProfile(user);
+                  this._setIdToken(result.idToken);
                 }.bind(this));
-                localStorage.setItem('auth0:authUser', result.idToken);
-                localStorage.setItem('auth0:accessToken', result.accessToken);
-                this._setIdToken(result.idToken);
-                this._monitorExpiry();
               }
             }.bind(this));
           }
         }.bind(this));
       },
 
-      _handleTokenExpiration: function (event) {
+      _handleTokenExpiration: function () {
         this.auth0.renewAuth({
           redirectUri: window.location.origin + '?sso-silent-auth=true',
           scope: this.options.auth.scope,
@@ -168,12 +167,11 @@
             lock.show();
           } else {
             this.auth0.client.userInfo(result.accessToken, function(err, user) {
+              localStorage.setItem('auth0:authUser', result.idToken);
+              localStorage.setItem('auth0:accessToken', result.accessToken);
               this._setUserProfile(user);
+              this._setIdToken(result.idToken);
             }.bind(this));
-            localStorage.setItem('auth0:authUser', result.idToken);
-            localStorage.setItem('auth0:accessToken', result.accessToken);
-            this._setIdToken(result.idToken);
-            this._monitorExpiry();
           }
         }.bind(this));
       },
@@ -189,17 +187,18 @@
         return false
       },
 
-      _monitorExpiry: function () {
-        if(!this.jwtManager) {return}
-        var idToken = localStorage.getItem('auth0:authUser');
-        var decoded = jwt_decode(idToken);
-        var timeToExpiryInMilliseconds= decoded.exp * 1000 - Date.now();
-        if(this.expirationMonitor) {
-          this.cancelAsync(this.expirationMonitor)
+      _monitorExpiry: function(userProfile, idToken, jwtManager) {
+        if(jwtManager === true && userProfile && idToken) {
+          var decoded = jwt_decode(idToken);
+          var timeToExpiryInMilliseconds= decoded.exp * 1000 - Date.now();
+          if(this._expirationMonitor) {
+            this.cancelAsync(this._expirationMonitor)
+          }
+          this._expirationMonitor = this.async(function () {
+            this._handleTokenExpiration()
+          }.bind(this), timeToExpiryInMilliseconds)
+          return this._expirationMonitor
         }
-        this.expirationMonitor = this.async(function () {
-          this._handleTokenExpiration()
-        }.bind(this), timeToExpiryInMilliseconds)
       },
 
       signOut: function(clientId) {

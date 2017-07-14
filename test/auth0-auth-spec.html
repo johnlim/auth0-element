@@ -408,36 +408,35 @@
         })
       });
 
-      suite('Handling of token events', function() {
-        test('should be enabled only if client explicitly enables it', function(done) {
+      suite('Monitoring of token expiry', function() {
+        test('should be enabled when client explicitly enables it', function(done) {
           var element = fixture('basic');
+          var monitor = sinon.stub(element, '_monitorExpiry');
+          element._setUserProfile({user: 'userInfo'});
+          element._setIdToken('idToken');
           element.jwtManager = true;
+
           flush(function () {
-            assert(element.$$('jwt-manager'));
+            sinon.assert.calledWith(monitor, element.userProfile, element.idToken, true);
             done();
           })
         });
 
-        test('should be disabled unless client enables it', function(done) {
+        test('should be disabled when client does not enable it', function(done) {
           var element = fixture('basic');
+          var monitor = sinon.spy(element, '_monitorExpiry');
+          element._setUserProfile({user: 'userInfo'});
+          element._setIdToken('idToken');
+
           flush(function () {
-            assert(!element.$$('jwt-manager'));
+            assert(monitor.returned(undefined));
             done();
           })
         });
+      });
 
-        test('should log user out when token has expired', function(done) {
-          var element = fixture('basic');
-          element.jwtManager = true;
-          element.clientId = 'abc';
-          var spy = sinon.stub(element, 'signOut');
-          flush(function () {
-            element.addEventListener('auth-token', function () {
-              sinon.assert.calledWith(spy, element.clientId);
-              done()
-            });
-            element.$$('jwt-manager').fire('auth-token', {status: 'EXPIRED'})
-          })
+      suite('Handling of token expiry', function() {
+        test('TODO: Need to add test', function(done) {
         });
       });
 
