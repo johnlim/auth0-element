@@ -1,6 +1,6 @@
 {
   "name": "auth0-element",
-  "version": "3.2.1",
+  "version": "3.2.2",
   "authors": [
     "John Lim Ding Wei"
   ],
@@ -16,7 +16,6 @@
     "auth0.js": "^8.6.1",
     "auth0-lock": "^10.2.1",
     "jwt-decode": "^2.2.0",
-    "iron-localstorage": "^1.0.6",
     "iron-ajax": "^1.4.4"
   },
   "devDependencies": {
