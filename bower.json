@@ -16,7 +16,6 @@
     "auth0.js": "^8.6.1",
     "auth0-lock": "^10.2.1",
     "jwt-decode": "^2.2.0",
-    "iron-localstorage": "^2.0.0",
     "iron-ajax": "^2.0.0"
   },
   "devDependencies": {
