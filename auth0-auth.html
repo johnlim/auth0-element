@@ -197,11 +197,11 @@
           var decoded = jwt_decode(idToken);
           var timeToExpiryInMilliseconds= decoded.exp * 1000 - Date.now();
           if(this._expirationMonitor) {
-            this.cancelAsync(this._expirationMonitor)
+            Polymer.Async.timeOut.cancel(this._expirationMonitor);
           }
-          this._expirationMonitor = this.async(function () {
+          this._expirationMonitor = Polymer.Async.timeOut.run(function () {
             this._handleTokenExpiration()
-          }.bind(this), timeToExpiryInMilliseconds)
+          }.bind(this), timeToExpiryInMilliseconds);
           return this._expirationMonitor
         }
       }
