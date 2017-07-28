@@ -5,6 +5,9 @@
 ### Demo
 See latest auth0-element demo (from master) at https://johnlim.github.io/auth0-element/components/auth0-element/demo/
 
+### API Doc 
+See latest auth0-element demo (from master) at https://johnlim.github.io/auth0-element/components/auth0-element/
+
 
 ## Install the Polymer-CLI
 
