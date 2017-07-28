@@ -4,6 +4,8 @@
 <link rel="import" href="../auth0-auth.html">
 <link rel="import" href="../auth0-delegate.html">
 <link rel="import" href="../../paper-button/paper-button.html">
+<link rel="import" href="../../app-route/app-location.html">
+<link rel="import" href="../../app-route/app-route.html">
 
 <dom-module id="auth0-element-demo">
   <template>
@@ -13,14 +15,20 @@
       }
     </style>
 
+    <app-location id="route" route="{{route}}"></app-location>
+    <app-route route="{{route}}" pattern="/:page"
+               query-params="{{params}}"></app-route>
+
     <auth0-auth
             id="auth0"
             client-id="LP1BxaYQm2NQTZG64MQqHmI2xxDiRMaf"
             domain="johnlim.au.auth0.com"
-            scope="openid name picture"
+            options="{{auth0Options}}"
             logout-redirect-to="https://johnlim.github.io/auth0-element/components/auth0-element/demo/"
             user-profile={{user}}
-            id-token="{{idToken}}">
+            id-token="{{idToken}}"
+            query-params="{{params}}"
+            jwt-manager>
     </auth0-auth>
 
     <auth0-delegate
@@ -76,6 +84,28 @@
         },
         firebaseUser: {
           value: null
+        },
+        auth0Options: {
+          type: Object,
+          value: function () {
+            return {
+              auth: {
+                scope: 'openid email',
+                redirectUri: window.location.origin +'/components/auth0-element/demo/',
+                responseType: 'token',
+                connection: 'Username-Password-Authentication',
+
+              },
+              allowedConnections: ['Username-Password-Authentication'],
+              closable: false
+            }
+          }
+        },
+        route: {
+          type: Object
+        },
+        params: {
+          type: Object
         }
       },
       signIntoFirebase: function(token) {

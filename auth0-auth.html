@@ -83,7 +83,7 @@
 
         if(queryParams['sso-silent-auth']){
           this.auth0.parseHash(window.location.hash, function (err, response) {
-            parent.postMessage(err || response, window.location.origin);
+            parent.postMessage(err || response, options.auth.redirectUri);
           });
           return
         }
@@ -124,7 +124,7 @@
             return
           } else {
             this.auth0.renewAuth({
-              redirectUri: window.location.origin + '?sso-silent-auth=true',
+              redirectUri: this.options.auth.redirectUri  + '?sso-silent-auth=true',
               scope: this.options.auth.scope,
               usePostMessage: true
             }, function (err, result) {
@@ -152,7 +152,7 @@
 
       _handleTokenExpiration: function () {
         this.auth0.renewAuth({
-          redirectUri: window.location.origin + '?sso-silent-auth=true',
+          redirectUri: this.options.auth.redirectUri + '?sso-silent-auth=true',
           scope: this.options.auth.scope,
           usePostMessage: true
         }, function (err, result) {

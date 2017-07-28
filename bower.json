@@ -23,6 +23,7 @@
     "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^1.0.0",
     "web-component-tester": "^4.0.0",
     "webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.0",
-    "polymerfire": "firebase/polymerfire#^0.9.5"
+    "polymerfire": "firebase/polymerfire#^0.9.5",
+    "app-route": "PolymerElements/app-route#^0.9.0"
   }
 }
