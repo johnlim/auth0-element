@@ -1,0 +1,39 @@
+{
+  "name": "auth0-element",
+  "authors": [
+    "John Lim Ding Wei"
+  ],
+  "description": "An element that makes it easy to declaratively use auth0",
+  "keywords": [
+    "web-components",
+    "polymer",
+    "auth0"
+  ],
+  "main": "auth0-element.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.4.0",
+    "auth0.js": "^8.6.1",
+    "auth0-lock": "^10.2.1",
+    "jwt-decode": "^2.2.0",
+    "iron-ajax": "^1.4.4"
+  },
+  "devDependencies": {
+    "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
+    "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^1.0.0",
+    "web-component-tester": "^4.0.0",
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.0",
+    "polymerfire": "firebase/polymerfire#^0.9.5",
+    "app-route": "PolymerElements/app-route#^0.9.0"
+  },
+  "homepage": "https://github.com/johnlim/auth0-element",
+  "_release": "c49e70272f",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "c49e70272fad009f2dd2a2937a6e166ab051ae36"
+  },
+  "_source": "https://github.com/johnlim/auth0-element.git",
+  "_target": "master",
+  "_originalSource": "johnlim/auth0-element",
+  "_direct": true
+}

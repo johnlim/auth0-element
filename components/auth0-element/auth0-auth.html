@@ -1,0 +1,255 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-ajax/iron-ajax.html">
+<link rel="import" href="auth0.html">
+<link rel="import" href="auth0-lock.html">
+<link rel="import" href="../jwt-decode/jwt-decode.html">
+
+<dom-module id="auth0-auth">
+
+  <template>
+    <iron-ajax
+            id="ajax"
+            method="DELETE">
+    </iron-ajax>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'auth0-auth',
+
+      properties: {
+        clientId: {
+          type: String
+        },
+        domain: {
+          type: String
+        },
+        options: {
+          type: Object
+        },
+        logoutRedirectTo: {
+          type: String
+        },
+        userProfile: {
+          readOnly: true,
+          notify: true,
+          type: Object
+        },
+        /**
+         * A pointer to the auth0 instance being used by the element.
+         */
+        auth0: {
+          type: Object,
+          readOnly: true
+        },
+        localStorageKey: {
+          type: String,
+          readOnly: true,
+          value: "auth0:authUser"
+        },
+        idToken: {
+          type: String,
+          readOnly: true,
+          notify: true
+        },
+        hostedPages: {
+          type: Boolean,
+          value: false
+        },
+        queryParams: {
+          type: Object
+        },
+        jwtManager: {
+          type: Boolean,
+          value: false
+        },
+        _expirationMonitor: {
+          type: Object
+        }
+      },
+      observers: [
+        '_init(clientId, domain, options, queryParams)',
+        '_monitorExpiry(userProfile, idToken, jwtManager)'
+      ],
+
+      _init: function(clientId, domain, options, queryParams) {
+        // instantiate Lock
+        this._setAuth0(new auth0.WebAuth({
+              domain:       domain,
+              clientID:     clientId
+            })
+        );
+
+        if(queryParams['sso-silent-auth']){
+          this.auth0.parseHash(window.location.hash, function (err, response) {
+            parent.postMessage(err || response, options.auth.redirectUri);
+          });
+          return
+        }
+
+        if (localStorage.getItem('auth0:link-account')) {
+          localStorage.removeItem('auth0:link-account');
+          this.auth0.parseHash(window.location.hash, function(err, authResult) {
+            if (authResult && authResult.idToken) {
+              window.location.hash = '';
+              this.linkAccount(authResult.idToken);
+            }
+          }.bind(this));
+          return
+        }
+
+        this._parseHash();
+      },
+
+      _parseHash: function(){
+        if (this._tokenIsValid()) {
+          var idToken = localStorage.getItem('auth0:authUser');
+          var accessToken = localStorage.getItem('auth0:accessToken');
+          this.auth0.client.userInfo(accessToken, function(err, user) {
+            this._setUserProfile(user);
+            this._setIdToken(idToken);
+          }.bind(this));
+          return
+        }
+        this.auth0.parseHash(window.location.hash, function(err, authResult) {
+          if (authResult && authResult.accessToken && authResult.idToken) {
+            this.auth0.client.userInfo(authResult.accessToken, function(err, user) {
+              localStorage.setItem('auth0:authUser', authResult.idToken);
+              localStorage.setItem('auth0:accessToken', authResult.accessToken);
+              this._setUserProfile(user);
+              this._setIdToken(authResult.idToken);
+            }.bind(this));
+            window.location.hash = '';
+            return
+          } else {
+            this.auth0.renewAuth({
+              redirectUri: this.options.auth.redirectUri  + '?sso-silent-auth=true',
+              scope: this.options.auth.scope,
+              usePostMessage: true
+            }, function (err, result) {
+              if (err || !result || !result.idToken || !result.accessToken) {
+                // regular login
+                if(this.hostedPages) {
+                  this.auth0.authorize(this.options.auth);
+                  return
+                }
+                //else
+                var lock = new Auth0Lock(this.clientId, this.domain, this.options);
+                lock.show();
+              } else {
+                this.auth0.client.userInfo(result.accessToken, function(err, user) {
+                  localStorage.setItem('auth0:authUser', result.idToken);
+                  localStorage.setItem('auth0:accessToken', result.accessToken);
+                  this._setUserProfile(user);
+                  this._setIdToken(result.idToken);
+                }.bind(this));
+              }
+            }.bind(this));
+          }
+        }.bind(this));
+      },
+
+      _handleTokenExpiration: function () {
+        this.auth0.renewAuth({
+          redirectUri: this.options.auth.redirectUri + '?sso-silent-auth=true',
+          scope: this.options.auth.scope,
+          usePostMessage: true
+        }, function (err, result) {
+          if (err || !result || !result.idToken || !result.accessToken) {
+            // regular login
+            if(this.hostedPages) {
+              this.auth0.authorize(this.options.auth);
+              return
+            }
+            //else
+            var lock = new Auth0Lock(this.clientId, this.domain, this.options);
+            lock.show();
+          } else {
+            this.auth0.client.userInfo(result.accessToken, function(err, user) {
+              localStorage.setItem('auth0:authUser', result.idToken);
+              localStorage.setItem('auth0:accessToken', result.accessToken);
+              this._setUserProfile(user);
+              this._setIdToken(result.idToken);
+            }.bind(this));
+          }
+        }.bind(this));
+      },
+
+      _tokenIsValid: function () {
+        var idToken = localStorage.getItem('auth0:authUser');
+        var accessToken = localStorage.getItem('auth0:accessToken');
+        if (idToken && accessToken) {
+          var decoded = jwt_decode(idToken);
+          var timeToExpiryInMilliseconds= decoded.exp * 1000 - Date.now();
+          return timeToExpiryInMilliseconds > 0 ? true : false
+        }
+        return false
+      },
+
+      _monitorExpiry: function(userProfile, idToken, jwtManager) {
+        if(jwtManager === true && userProfile && idToken) {
+          var decoded = jwt_decode(idToken);
+          var timeToExpiryInMilliseconds= decoded.exp * 1000 - Date.now();
+          if(this._expirationMonitor) {
+            this.cancelAsync(this._expirationMonitor)
+          }
+          this._expirationMonitor = this.async(function () {
+            this._handleTokenExpiration()
+          }.bind(this), timeToExpiryInMilliseconds)
+          return this._expirationMonitor
+        }
+      },
+
+      signOut: function(clientId) {
+        localStorage.removeItem(this.localStorageKey);
+        this.auth0.logout({returnTo: this.logoutRedirectTo, client_id: clientId}, {version: 'v2'});
+      },
+
+      linkAccount: function(secondaryJwt) {
+        var primaryJWT = localStorage.getItem('auth0:authUser');
+        var primaryAccessToken  = localStorage.getItem('auth0:accessToken');
+
+
+        this.auth0.client.userInfo(primaryAccessToken, function(err, user) {
+          var primaryUserId = user.user_id;
+          var auth0Management= new auth0.Management({
+            domain: this.domain,
+            token: primaryJWT
+          });
+          auth0Management.linkUser(primaryUserId, secondaryJwt, function () {
+            this.auth0.client.userInfo(primaryAccessToken, function(err, user) {
+              this._setUserProfile(user);
+            }.bind(this));
+          }.bind(this))
+        }.bind(this));
+      },
+
+      unlinkAccount: function (connection) {
+        return new Promise(function (resolve, reject) {
+          var primaryAccessToken = localStorage.getItem('auth0:accessToken');
+          var idToken = localStorage.getItem('auth0:authUser');
+          this.auth0.client.userInfo(primaryAccessToken, function (err, user) {
+            var primaryUserId = user.user_id;
+            var secondaryUserId = user.identities.filter(function (identity) {
+              return identity.connection === connection
+            })[0].user_id;
+            this.$.ajax.url = 'https://' + this.domain + '/api/v2/users/' + primaryUserId + '/identities/' + connection + '/' + secondaryUserId;
+            this.$.ajax.headers = {Authorization: "Bearer " + idToken};
+            var request = this.$.ajax.generateRequest();
+            request.completes.then(function () {
+              var accessToken = localStorage.getItem('auth0:accessToken');
+              this.auth0.client.userInfo(accessToken, function (err, user) {
+                this._setUserProfile(user);
+              }.bind(this));
+              resolve()
+            }.bind(this)).catch(function (error) {
+              reject(error)
+            })
+          }.bind(this));
+        }.bind(this));
+      }
+    });
+
+  </script>
+</dom-module>
