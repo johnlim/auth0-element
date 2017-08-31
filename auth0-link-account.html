@@ -1,5 +1,5 @@
 <link rel="import" href="../polymer/polymer-element.html">
-<link rel="import" href="auth0-lock.html">
+<link rel="import" href="auth0.html">
 
 <dom-module id="auth0-link-account">
 
@@ -35,17 +35,19 @@
 
       _initAccountLinking(connection) {
         if(!connection) {return}
-
-        var options = Object.assign({}, this.options);
-        options.allowedConnections = [connection];
         localStorage.setItem('auth0:link-account', connection);
-        var lock = new Auth0Lock(this.clientId, this.domain, options);
-        lock.on('hide', function () {
-          localStorage.removeItem('auth0:link-account');
-          this.connection = null;
-        }.bind(this));
-        lock.show();
-      }
+
+        var webAuth = new auth0.WebAuth({
+          domain: this.domain,
+          clientID: this.clientId
+        });
+
+        webAuth.authorize({
+          scope: this.options.auth.scope,
+          connection: connection,
+          responseType: this.options.auth.responseType,
+          redirectUri: this.options.auth.redirectUri
+        });
     }
 
     customElements.define(Auth0LinkAccount.is, Auth0LinkAccount);
