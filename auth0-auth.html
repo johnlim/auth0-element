@@ -65,10 +65,7 @@
           value: false
         },
         _expirationMonitor: {
-          type: Array,
-          value: function () {
-            return [];
-          }
+          type: Object
         }
       },
       observers: [
@@ -192,12 +189,10 @@
 
       _monitorExpiry: function (idToken, jwtManager) {
         if (jwtManager === true && idToken) {
-          //stop all running timers. There may be multiple timers running as
-          for (var i = 0; i < this._expirationMonitor.length; i++) {
-            this._expirationMonitor[i]();
+          if(typeof this._expirationMonitor === 'function') {
+            this._expirationMonitor();
           }
-          this._expirationMonitor = [];
-          this._expirationMonitor.push(function () {
+          this._expirationMonitor = (function () {
             var decoded = jwt_decode(idToken);
             var interval = 60 * 1000; //60 secs
             var timerId = setInterval(function () {
@@ -207,7 +202,7 @@
                 timerId = null;
                 this._handleTokenExpiration()
               }
-            }.bind(this), interval)
+            }.bind(this), interval);
             return function () {
               if (timerId) {
                 clearInterval(timerId);
