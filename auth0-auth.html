@@ -65,12 +65,15 @@
           value: false
         },
         _expirationMonitor: {
-          type: Object
+          type: Array,
+          value: function () {
+            return [];
+          }
         }
       },
       observers: [
         '_init(clientId, domain, options, queryParams)',
-        '_monitorExpiry(userProfile, idToken, jwtManager)'
+        '_monitorExpiry(idToken, jwtManager)'
       ],
 
       _init: function(clientId, domain, options, queryParams) {
@@ -187,17 +190,30 @@
         return false
       },
 
-      _monitorExpiry: function(userProfile, idToken, jwtManager) {
-        if(jwtManager === true && userProfile && idToken) {
-          var decoded = jwt_decode(idToken);
-          var timeToExpiryInMilliseconds= decoded.exp * 1000 - Date.now();
-          if(this._expirationMonitor) {
-            this.cancelAsync(this._expirationMonitor)
+      _monitorExpiry: function (idToken, jwtManager) {
+        if (jwtManager === true && idToken) {
+          //stop all running timers. There may be multiple timers running as
+          for (var i = 0; i < this._expirationMonitor.length; i++) {
+            this._expirationMonitor[i]();
           }
-          this._expirationMonitor = this.async(function () {
-            this._handleTokenExpiration()
-          }.bind(this), timeToExpiryInMilliseconds)
-          return this._expirationMonitor
+          this._expirationMonitor = [];
+          this._expirationMonitor.push(function () {
+            var decoded = jwt_decode(idToken);
+            var interval = 60 * 1000; //60 secs
+            var timerId = setInterval(function () {
+              var timeToExpiryInMilliseconds = decoded.exp * 1000 - Date.now();
+              if (timeToExpiryInMilliseconds <= 0) {
+                clearInterval(timerId);
+                timerId = null;
+                this._handleTokenExpiration()
+              }
+            }.bind(this), interval)
+            return function () {
+              if (timerId) {
+                clearInterval(timerId);
+              }
+            }
+          }.bind(this)());
         }
       },
 
