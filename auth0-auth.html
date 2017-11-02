@@ -72,7 +72,7 @@
       static get observers() {
         return [
           '_init(clientId, domain, options, queryParams)',
-          '_monitorExpiry(userProfile, idToken, jwtManager)'
+          '_monitorExpiry(idToken, jwtManager)'
         ]
       }
 
@@ -192,17 +192,28 @@
         return false
       }
 
-      _monitorExpiry(userProfile, idToken, jwtManager) {
-        if(jwtManager === true && userProfile && idToken) {
-          var decoded = jwt_decode(idToken);
-          var timeToExpiryInMilliseconds= decoded.exp * 1000 - Date.now();
-          if(this._expirationMonitor) {
-            Polymer.Async.timeOut.cancel(this._expirationMonitor);
+      _monitorExpiry(idToken, jwtManager) {
+        if (jwtManager === true && idToken) {
+          if(typeof this._expirationMonitor === 'function') {
+            this._expirationMonitor();
           }
-          this._expirationMonitor = Polymer.Async.timeOut.run(function () {
-            this._handleTokenExpiration()
-          }.bind(this), timeToExpiryInMilliseconds);
-          return this._expirationMonitor
+          this._expirationMonitor = (function () {
+            var decoded = jwt_decode(idToken);
+            var interval = 60 * 1000; //60 secs
+            var timerId = setInterval(function () {
+              var timeToExpiryInMilliseconds = decoded.exp * 1000 - Date.now();
+              if (timeToExpiryInMilliseconds <= 0) {
+                clearInterval(timerId);
+                timerId = null;
+                this._handleTokenExpiration()
+              }
+            }.bind(this), interval);
+            return function () {
+              if (timerId) {
+                clearInterval(timerId);
+              }
+            }
+          }.bind(this)());
         }
       }
 
