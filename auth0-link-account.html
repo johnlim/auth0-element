@@ -42,12 +42,9 @@
           clientID: this.clientId
         });
 
-        webAuth.authorize({
-          scope: this.options.auth.scope,
-          connection: connection,
-          responseType: this.options.auth.responseType,
-          redirectUri: this.options.auth.redirectUri
-        });
+        var options = Object.assign({}, this.options, {connection: this.connection});
+
+        webAuth.authorize(options);
     }
 
     customElements.define(Auth0LinkAccount.is, Auth0LinkAccount);
