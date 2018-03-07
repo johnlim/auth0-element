@@ -1,6 +1,6 @@
 {
   "name": "auth0-element",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "authors": [
     "John Lim Ding Wei"
   ],
@@ -13,8 +13,8 @@
   "main": "auth0-element.html",
   "dependencies": {
     "polymer": "Polymer/polymer#^1.4.0",
-    "auth0.js": "^8.6.1",
-    "auth0-lock": "^10.2.1",
+    "auth0.js": "^9.3.2",
+    "auth0-lock": "^11.3.1",
     "jwt-decode": "^2.2.0",
     "iron-ajax": "^1.4.4"
   },
