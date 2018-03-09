@@ -56,9 +56,6 @@
             type: Boolean,
             value: false
           },
-          queryParams: {
-            type: Object
-          },
           jwtManager: {
             type: Boolean,
             value: false
@@ -71,26 +68,21 @@
 
       static get observers() {
         return [
-          '_init(clientId, domain, options, queryParams)',
+          '_init(clientId, domain, options)',
           '_monitorExpiry(idToken, jwtManager)'
         ]
       }
 
-      _init(clientId, domain, options, queryParams) {
-        if(clientId !== undefined && domain !== undefined && options !== undefined && queryParams !== undefined) {
+      _init(clientId, domain, options) {
+        if(clientId !== undefined && domain !== undefined && options !== undefined) {
           // instantiate Lock
           this._setAuth0(new auth0.WebAuth({
                 domain: domain,
-                clientID: clientId
+                clientID: clientId,
+                redirectUri:  options.auth.redirectUri,
+                responseType: options.auth.responseType
               })
           );
-
-          if (queryParams['sso-silent-auth']) {
-            this.auth0.parseHash(window.location.hash, function (err, response) {
-              parent.postMessage(err || response, options.auth.redirectUri);
-            });
-            return
-          }
 
           if (localStorage.getItem('auth0:link-account')) {
             localStorage.removeItem('auth0:link-account');
@@ -128,10 +120,8 @@
             window.location.hash = '';
             return
           } else {
-            this.auth0.renewAuth({
-              redirectUri: this.options.auth.redirectUri + '?sso-silent-auth=true',
-              scope: this.options.auth.scope,
-              usePostMessage: true
+            this.auth0.checkSession({
+              scope: this.options.auth.scope
             }, function (err, result) {
               if (err || !result || !result.idToken || !result.accessToken) {
                 // regular login
@@ -156,10 +146,8 @@
       }
 
       _handleTokenExpiration() {
-        this.auth0.renewAuth({
-          redirectUri: this.options.auth.redirectUri + '?sso-silent-auth=true',
-          scope: this.options.auth.scope,
-          usePostMessage: true
+        this.auth0.checkSession({
+          scope: this.options.auth.scope
         }, function (err, result) {
           if (err || !result || !result.idToken || !result.accessToken) {
             // regular login
