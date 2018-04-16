@@ -109,7 +109,7 @@
           }.bind(this));
           return
         }
-        this.auth0.parseHash(window.location.hash, function(err, authResult) {
+        this.auth0.parseHash(function(err, authResult) {
           if (authResult && authResult.accessToken && authResult.idToken) {
             this.auth0.client.userInfo(authResult.accessToken, function(err, user) {
               localStorage.setItem('auth0:authUser', authResult.idToken);
