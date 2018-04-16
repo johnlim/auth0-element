@@ -81,7 +81,7 @@
 
         if (localStorage.getItem('auth0:link-account')) {
           localStorage.removeItem('auth0:link-account');
-          this.auth0.parseHash(window.location.hash, function(err, authResult) {
+          this.auth0.parseHash(function(err, authResult) {
             if (authResult && authResult.idToken) {
               window.location.hash = '';
               this.linkAccount(authResult.idToken);
@@ -103,7 +103,7 @@
           }.bind(this));
           return
         }
-        this.auth0.parseHash(window.location.hash, function(err, authResult) {
+        this.auth0.parseHash(function(err, authResult) {
           if (authResult && authResult.accessToken && authResult.idToken) {
             this.auth0.client.userInfo(authResult.accessToken, function(err, user) {
               localStorage.setItem('auth0:authUser', authResult.idToken);
