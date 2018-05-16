@@ -36,7 +36,7 @@
             show: function() {}
           });
           auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
-            parseHash: function (options, fn) {
+            parseHash: function (fn) {
               return fn(null, {accessToken: 'accessToken', idToken: 'idToken'})
             },
             client: {
@@ -53,21 +53,20 @@
           auth0.restore();
         });
 
-        test('_init is called executed only when all parameters are defined', function() {
+        test('_init is executed only when all parameters are defined', function() {
           var element = fixture('basic');
           var spy = sinon.stub(element, '_init');
-          element.queryParams = {};
           element.options = {};
           element.clientId = 'auth0-clientId';
           element.domain = 'auth0-domain';
 
-          sinon.assert.calledWith(spy,'auth0-clientId', 'auth0-domain', {}, {})
+          sinon.assert.calledWith(spy,'auth0-clientId', 'auth0-domain', {})
         });
 
         test('signOut logs the user out of application session by clearing localStorage', function() {
           var element = fixture('basic');
           //call _init so that auth0 will be initialised as it cannot be stubbed till its defined and we cannot assign it here as its set as read-only
-          element._init('auth0-clientId', 'auth0-domain', {}, {});
+          element._init('auth0-clientId', 'auth0-domain', {auth: {redirectUri: '', responseType:'token'}});
           sinon.stub(element.auth0, 'logout');
           localStorage.setItem(element.localStorageKey, "abc");
           element.signOut();
@@ -78,7 +77,7 @@
           var element = fixture('basic');
           element.logoutRedirectTo = 'localHost';
           //call _init so that auth0 will be initialised as it cannot be stubbed till its defined and we cannot assign it here as its set as read-only
-          element._init('auth0-clientId', 'auth0-domain', {}, {});
+          element._init('auth0-clientId', 'auth0-domain', {auth: {redirectUri: '', responseType: 'token'}});
           var spy = sinon.stub(element.auth0, 'logout');
           element.signOut('abc');
 
@@ -89,7 +88,7 @@
           var element = fixture('basic');
           element.logoutRedirectTo = 'abc';
           //call _init so that auth0 will be initialised as it cannot be stubbed till its defined and we cannot assign it here as its set as read-only
-          element._init('auth0-clientId', 'auth0-domain', {}, {});
+          element._init('auth0-clientId', 'auth0-domain', {auth: {redirectUri: '', responseType: 'token'}});
           var spy = sinon.stub(element.auth0, 'logout');
           element.signOut();
           sinon.assert.calledWithExactly(spy, {returnTo: element.logoutRedirectTo, client_id: undefined}, {version: 'v2'});
@@ -105,7 +104,7 @@
             }
           });
           auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
-            parseHash: function (options, fn) {
+            parseHash: function (fn) {
               return fn(null, {accessToken: 'accessToken', idToken: 'idToken'})
             },
             logout: function () {
@@ -126,25 +125,25 @@
 
         test('User profile should be set', function () {
           var element = fixture('basic');
-          element._init('auth0-clientId', 'auth0-domain', {}, {});
+          element._init('auth0-clientId', 'auth0-domain', {auth: {redirectUri: '', responseType: 'token'}});
           assert(element.userProfile);
         });
 
         test('id token will be stored to local storage', function () {
           var element = fixture('basic');
-          element._init('auth0-clientId', 'auth0-domain', {}, {});
+          element._init('auth0-clientId', 'auth0-domain', {auth: {redirectUri: '', responseType: 'token'}});
           assert.equal('idToken',localStorage.getItem("auth0:authUser"))
         });
 
         test('access token will be stored to local storage', function () {
           var element = fixture('basic');
-          element._init('auth0-clientId', 'auth0-domain', {}, {});
+          element._init('auth0-clientId', 'auth0-domain', {auth: {redirectUri: '', responseType: 'token'}});
           assert.equal('accessToken',localStorage.getItem("auth0:accessToken"))
         });
 
         test('id token property will be set', function () {
           var element = fixture('basic');
-          element._init('auth0-clientId', 'auth0-domain', {}, {});
+          element._init('auth0-clientId', 'auth0-domain', {auth: {redirectUri: '', responseType: 'token'}});
           assert.equal('idToken', element.idToken)
         });
       });
@@ -165,64 +164,76 @@
 
         test('User profile should NOT be set if authResult is null', function () {
           auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
-            parseHash: function (options, fn) {
+            parseHash: function (fn) {
               return fn(null, null)
             },
             renewAuth: function(options, fn) {
+              return fn({}, null)
+            },
+            checkSession: function (options, fn) {
               return fn({}, null)
             }
           });
           var element = fixture('basic');
           element.options = {auth: {scope: 'openId'}};
-          element._init('auth0-clientId', 'auth0-domain', {}, {});
+          element._init('auth0-clientId', 'auth0-domain', {auth: {redirectUri: '', responseType: 'token'}});
           assert(!element.userProfile);
           auth0.restore();
         });
 
         test('User profile should NOT be set if authResult does not contain an access token', function () {
           auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
-            parseHash: function (options, fn) {
+            parseHash: function (fn) {
               return fn(null, {idToken: 'idToken'})
             },
             renewAuth: function(options, fn) {
+              return fn({}, null)
+            },
+            checkSession: function (options, fn) {
               return fn({}, null)
             }
           });
           var element = fixture('basic');
           element.options = {auth: {scope: 'openId'}};
-          element._init('auth0-clientId', 'auth0-domain', {}, {});
+          element._init('auth0-clientId', 'auth0-domain', {auth: {redirectUri: '', responseType: 'token'}});
           assert(!element.userProfile);
           auth0.restore();
         });
 
         test('User profile should NOT be set if authResult does not contain an id token', function () {
           auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
-            parseHash: function (options, fn) {
+            parseHash: function (fn) {
               return fn(null, {accessToken: 'accessToken'})
             },
             renewAuth: function(options, fn) {
+              return fn({}, null)
+            },
+            checkSession: function (options, fn) {
               return fn({}, null)
             }
           });
           var element = fixture('basic');
           element.options = {auth: {scope: 'openId'}};
-          element._init('auth0-clientId', 'auth0-domain', {}, {});
+          element._init('auth0-clientId', 'auth0-domain', {auth: {redirectUri: '', responseType: 'token'}});
           assert(!element.userProfile);
           auth0.restore();
         });
 
         test('User should be redirected to login', function () {
           auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
-            parseHash: function (options, fn) {
+            parseHash: function (fn) {
               return fn(null, {error: 'error'})
             },
             renewAuth: function(options, fn) {
+              return fn({}, null)
+            },
+            checkSession: function (options, fn) {
               return fn({}, null)
             }
           });
           var element = fixture('basic');
           element.options = {auth: {scope: 'openId'}};
-          element._init('auth0-clientId', 'auth0-domain', {}, {});
+          element._init('auth0-clientId', 'auth0-domain', {auth: {redirectUri: '', responseType: 'token'}});
           assert.equal(stubLockDotShow.callCount, 1);
           auth0.restore();
         });
@@ -230,10 +241,13 @@
         test('Should redirect to hosted login page if useHostedPages set to true', function() {
           var stubAuthorize =  sinon.stub().returns("");
           auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
-            parseHash: function (options, fn) {
+            parseHash: function (fn) {
               return fn(null, {error: 'error'})
             },
             renewAuth: function(options, fn) {
+              return fn({}, null)
+            },
+            checkSession: function (options, fn) {
               return fn({}, null)
             },
             authorize: stubAuthorize
@@ -241,31 +255,9 @@
           var element = fixture('basic');
           element.hostedPages = true;
           element.options = {auth: 'authOptions'};
-          element._init('auth0-clientId', 'auth0-domain', {}, {});
+          element._init('auth0-clientId', 'auth0-domain', {auth: {redirectUri: '', responseType: 'token'}});
           sinon.assert.calledWith(stubAuthorize, element.options.auth);
           assert.equal(stubAuthorize.callCount, 1);
-          auth0.restore();
-        });
-
-      });
-
-      suite('Auth0 bug? - parseHash', function() {
-        test('must be called with window.location.hash', function () {
-          var auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
-            parseHash: function (options, fn) {
-              assert.equal(window.location.hash, options);
-              return fn(null, {error: 'error'})
-            },
-            renewAuth: function(options, fn) {
-              return fn({}, null)
-            }
-          });
-          auth0Lock = sinon.stub(window, 'Auth0Lock').returns({
-            show: function() {}
-          });
-          var element = fixture('basic');
-          element.options = {auth: {scope: 'openId'}};
-          element._init('auth0-clientId', 'auth0-domain', {}, {});
           auth0.restore();
         });
 
@@ -294,7 +286,7 @@
           element._tokenIsValid = function () {
             return true;
           };
-          element._init('auth0-clientId', 'auth0-domain', {}, {});
+          element._init('auth0-clientId', 'auth0-domain', {auth: {redirectUri: '', responseType: 'token'}});
           assert(element.userProfile);
         });
 
@@ -304,7 +296,7 @@
           element._tokenIsValid = function () {
             return true;
           };
-          element._init('auth0-clientId', 'auth0-domain', {}, {});
+          element._init('auth0-clientId', 'auth0-domain', {auth: {redirectUri: '', responseType: 'token'}});
           assert.equal('idToken', element.idToken)
         });
 
@@ -324,11 +316,14 @@
         setup(function () {
           clearLocalStorage();
           auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
-            parseHash: function (options, fn) {
+            parseHash: function (fn) {
               return fn(null, {error: 'error'})
             },
             renewAuth: function(options, fn) {
               return fn(null, {accessToken: 'accessToken', idToken: 'idToken'})
+            },
+            checkSession: function (options, fn) {
+              return fn(null, {idToken: 'idToken', accessToken: 'accessToken'})
             },
             client: {
               userInfo: function (accessToken, fn) {
@@ -346,66 +341,30 @@
         test('User profile should be set', function() {
           var element = fixture('basic');
           element.options = {auth: {scope: 'openId'}};
-          element._init('auth0-clientId', 'auth0-domain', {}, {});
+          element._init('auth0-clientId', 'auth0-domain', {auth: {redirectUri: '', responseType: 'token'}});
           assert(element.userProfile);
         });
 
         test('access token should be stored to local storage', function () {
           var element = fixture('basic');
           element.options = {auth: {scope: 'openId'}};
-          element._init('auth0-clientId', 'auth0-domain', {}, {});
+          element._init('auth0-clientId', 'auth0-domain', {auth: {redirectUri: '', responseType: 'token'}});
           assert.equal('accessToken',localStorage.getItem("auth0:accessToken"))
         });
 
         test('id token should be stored to local storage', function () {
           var element = fixture('basic');
           element.options = {auth: {scope: 'openId'}};
-          element._init('auth0-clientId', 'auth0-domain', {}, {});
+          element._init('auth0-clientId', 'auth0-domain', {auth: {redirectUri: '', responseType: 'token'}});
           assert.equal('idToken',localStorage.getItem("auth0:authUser"))
         });
 
         test('id token property will be set', function () {
           var element = fixture('basic');
           element.options = {auth: {scope: 'openId'}};
-          element._init('auth0-clientId', 'auth0-domain', {}, {});
+          element._init('auth0-clientId', 'auth0-domain', {auth: {redirectUri: '', responseType: 'token'}});
           assert.equal('idToken', element.idToken)
         });
-      });
-
-      suite('When there is an active SSO session', function() {
-        var auth0;
-        setup(function () {
-          auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
-            parseHash: function (options, fn) {
-              return fn(null, {error: 'error'})
-            },
-            renewAuth: function(options, fn) {
-              assert.deepEqual({
-                redirectUri: window.location.origin + '?sso-silent-auth=true',
-                usePostMessage: true,
-                scope: 'openId'
-              }, options);
-              return
-            }
-          });
-        });
-
-        teardown(function () {
-          auth0.restore();
-        });
-
-        test('silent authentication should callback with query param', function() {
-          var element = fixture('basic');
-          element.options = {auth: {scope: 'openId'}};
-          element._init('auth0-clientId', 'auth0-domain', {auth: {scope: 'openId'}}, {});
-        });
-
-        test('on silent authtentication, results should be posted back to parent', function() {
-          var spy = sinon.stub(parent, 'postMessage');
-          var element = fixture('basic');
-          element._init('auth0-clientId', 'auth0-domain', {}, {'sso-silent-auth': true});
-          sinon.assert.calledWith(spy, {error: 'error'}, window.location.origin)
-        })
       });
 
       suite('Monitoring of token expiry', function() {
@@ -417,7 +376,7 @@
           element.jwtManager = true;
 
           flush(function () {
-            sinon.assert.calledWith(monitor, element.userProfile, element.idToken, true);
+            sinon.assert.calledWith(monitor, element.idToken, true);
             done();
           })
         });
