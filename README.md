@@ -16,10 +16,10 @@ A collection of Polymer V1.0 elements that makes it easy to declaratively use [A
 It also includes a JWT manager that handles expiry of ID tokens.   
   
 ### Demo  
-Please see latest auth0-element demo (from master) at https://johnlim.github.io/auth0-element/components/auth0-element/demo/  
+A live demo of the element in action can be found [here](https://johnlim.github.io/auth0-element/components/auth0-element/demo/ ).
   
 ### Example - Authentication
-Enabling authentication which uses [Hosted Pages](https://auth0.com/docs/hosted-pages)  with JWT manager enabled is as simple as dropping in an \<auth0-auth\> element into your html and setting the properties accordingly.    
+Enabling authentication which uses [Hosted Pages](https://auth0.com/docs/hosted-pages)  with JWT manager enabled by importing the \<auth0-auth\> element into your html and setting the properties accordingly.    
 ```html 
 <auth0-auth  
 	client-id="YOUR_CLIENT_ID"
@@ -33,7 +33,17 @@ Enabling authentication which uses [Hosted Pages](https://auth0.com/docs/hosted-
 </auth0-auth>  
 ```  
  [Auth0 Lock](https://auth0.com/lock)   will be used if `hosted-pages` is omitted from the properties. 
- ### Example - Obtaining a Delegation Token 
+ ### Example - Obtaining a Delegation Token
+ Import the \<auth0-delegate\> element and configure the properties accordingly. By binding the idToken property to the idToken received from Auth0, \<auth0-delegate\> will automatically request a delegate token from Auth0 when a valid ID Token is received. 
+ ```html
+ <auth0-delegate  
+  client-id="YOUR_CLIENT_ID"  
+  domain="YOUR_AUTH0_DOMAIN	"  
+  options="OPTIONS"  
+  id-token="[[idToken]]"  
+  delegate-token="{{firebaseDelegateToken}}">  
+</auth0-delegate>
+ ``` 
  Obtaining a delegation token to authenticate with Firebase can be found in the accompanying [demo](https://johnlim.github.io/auth0-element/components/auth0-element/demo/ ). 
  ### Example - Account Linking
 # Development
