@@ -46,6 +46,15 @@ Enabling authentication which uses [Hosted Pages](https://auth0.com/docs/hosted-
  ``` 
  Obtaining a delegation token to authenticate with Firebase can be found in the accompanying [demo](https://johnlim.github.io/auth0-element/components/auth0-element/demo/ ). 
  ### Example - Account Linking
+ To accomplish account linking,  you'll need an \<auth0-auth\>element included somewhere in your application that handles authentication. Import the \<auth0-link-account\> element and set the properties accordingly. To initiate the account linking process, set the `connection` property.
+ ```html
+ <auth0-link-account  
+  client-id="YOUR_CLIENT_ID"  
+  domain="YOUR_AUTH0_DOMAIN"  
+  options="OPTIONS"  
+  connection="google-oauth2">  
+</auth0-link-account>
+ ```
 # Development
  ## Install the Polymer-CLI  
   
