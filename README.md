@@ -17,7 +17,10 @@ It also includes a JWT manager that handles expiry of ID tokens.
   
 ### Demo  
 A live demo of the element in action can be found [here](https://johnlim.github.io/auth0-element/components/auth0-element/demo/ ).
-  
+ 
+ ### API Doc 
+The API documentation can be found [here](https://johnlim.github.io/auth0-element/components/auth0-element/).
+
 ### Example - Authentication
 Enabling authentication which uses [Hosted Pages](https://auth0.com/docs/hosted-pages)  with JWT manager enabled by importing the \<auth0-auth\> element into your html and setting the properties accordingly.    
 ```html 
