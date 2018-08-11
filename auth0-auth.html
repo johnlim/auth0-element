@@ -1,4 +1,4 @@
-<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../polymer/polymer-element.html">
 <link rel="import" href="../iron-ajax/iron-ajax.html">
 <link rel="import" href="auth0.html">
 <link rel="import" href="auth0-lock.html">
@@ -14,86 +14,92 @@
   </template>
 
   <script>
-    Polymer({
-
-      is: 'auth0-auth',
-
-      properties: {
-        clientId: {
-          type: String
-        },
-        domain: {
-          type: String
-        },
-        options: {
-          type: Object
-        },
-        logoutRedirectTo: {
-          type: String
-        },
-        userProfile: {
-          readOnly: true,
-          notify: true,
-          type: Object
-        },
-        /**
-         * A pointer to the auth0 instance being used by the element.
-         */
-        auth0: {
-          type: Object,
-          readOnly: true
-        },
-        localStorageKey: {
-          type: String,
-          readOnly: true,
-          value: "auth0:authUser"
-        },
-        idToken: {
-          type: String,
-          readOnly: true,
-          notify: true
-        },
-        hostedPages: {
-          type: Boolean,
-          value: false
-        },
-        jwtManager: {
-          type: Boolean,
-          value: false
-        },
-        _expirationMonitor: {
-          type: Object
+    class Auth0Auth extends Polymer.Element {
+      static get is() { return 'auth0-auth'; }
+      static get properties() {
+        return {
+          clientId: {
+            type: String
+          },
+          domain: {
+            type: String
+          },
+          options: {
+            type: Object
+          },
+          logoutRedirectTo: {
+            type: String
+          },
+          userProfile: {
+            readOnly: true,
+            notify: true,
+            type: Object
+          },
+          /**
+           * A pointer to the auth0 instance being used by the element.
+           */
+          auth0: {
+            type: Object,
+            readOnly: true
+          },
+          localStorageKey: {
+            type: String,
+            readOnly: true,
+            value: "auth0:authUser"
+          },
+          idToken: {
+            type: String,
+            readOnly: true,
+            notify: true
+          },
+          hostedPages: {
+            type: Boolean,
+            value: false
+          },
+          jwtManager: {
+            type: Boolean,
+            value: false
+          },
+          _expirationMonitor: {
+            type: Object
+          }
         }
-      },
-      observers: [
-        '_init(clientId, domain, options)',
-        '_monitorExpiry(idToken, jwtManager)'
-      ],
+      }
 
-      _init: function(clientId, domain, options) {
-        this._setAuth0(new auth0.WebAuth({
-              domain:       domain,
-              clientID:     clientId,
-              redirectUri:  options.auth.redirectUri,
-              responseType: options.auth.responseType
-            })
-        );
+      static get observers() {
+        return [
+          '_init(clientId, domain, options)',
+          '_monitorExpiry(idToken, jwtManager)'
+        ]
+      }
 
-        if (localStorage.getItem('auth0:link-account')) {
-          localStorage.removeItem('auth0:link-account');
-          this.auth0.parseHash(function(err, authResult) {
-            if (authResult && authResult.idToken) {
-              window.location.hash = '';
-              this.linkAccount(authResult.idToken);
-            }
-          }.bind(this));
-          return
+      _init(clientId, domain, options) {
+        if(clientId !== undefined && domain !== undefined && options !== undefined) {
+          // instantiate Lock
+          this._setAuth0(new auth0.WebAuth({
+                domain: domain,
+                clientID: clientId,
+                redirectUri:  options.auth.redirectUri,
+                responseType: options.auth.responseType
+              })
+          );
+
+          if (localStorage.getItem('auth0:link-account')) {
+            localStorage.removeItem('auth0:link-account');
+            this.auth0.parseHash(function(err, authResult) {
+              if (authResult && authResult.idToken) {
+                window.location.hash = '';
+                this.linkAccount(authResult.idToken);
+              }
+            }.bind(this));
+            return
+          }
+
+          this._parseHash();
         }
+      }
 
-        this._parseHash();
-      },
-
-      _parseHash: function(){
+      _parseHash() {
         if (this._tokenIsValid()) {
           var idToken = localStorage.getItem('auth0:authUser');
           var accessToken = localStorage.getItem('auth0:accessToken');
@@ -137,9 +143,9 @@
             }.bind(this));
           }
         }.bind(this));
-      },
+      }
 
-      _handleTokenExpiration: function () {
+      _handleTokenExpiration() {
         this.auth0.checkSession({
           scope: this.options.auth.scope
         }, function (err, result) {
@@ -161,9 +167,9 @@
             }.bind(this));
           }
         }.bind(this));
-      },
+      }
 
-      _tokenIsValid: function () {
+      _tokenIsValid() {
         var idToken = localStorage.getItem('auth0:authUser');
         var accessToken = localStorage.getItem('auth0:accessToken');
         if (idToken && accessToken) {
@@ -172,9 +178,9 @@
           return timeToExpiryInMilliseconds > 0 ? true : false
         }
         return false
-      },
+      }
 
-      _monitorExpiry: function (idToken, jwtManager) {
+      _monitorExpiry(idToken, jwtManager) {
         if (jwtManager === true && idToken) {
           if(typeof this._expirationMonitor === 'function') {
             this._expirationMonitor();
@@ -197,33 +203,33 @@
             }
           }.bind(this)());
         }
-      },
+      }
 
-      signOut: function(clientId) {
+      signOut(clientId) {
         localStorage.removeItem(this.localStorageKey);
         this.auth0.logout({returnTo: this.logoutRedirectTo, client_id: clientId}, {version: 'v2'});
-      },
+      }
 
-      linkAccount: function(secondaryJwt) {
+      linkAccount(secondaryJwt) {
         var primaryJWT = localStorage.getItem('auth0:authUser');
-        var primaryAccessToken  = localStorage.getItem('auth0:accessToken');
+        var primaryAccessToken = localStorage.getItem('auth0:accessToken');
 
 
-        this.auth0.client.userInfo(primaryAccessToken, function(err, user) {
+        this.auth0.client.userInfo(primaryAccessToken, function (err, user) {
           var primaryUserId = user.user_id;
-          var auth0Management= new auth0.Management({
+          var auth0Management = new auth0.Management({
             domain: this.domain,
             token: primaryJWT
           });
           auth0Management.linkUser(primaryUserId, secondaryJwt, function () {
-            this.auth0.client.userInfo(primaryAccessToken, function(err, user) {
+            this.auth0.client.userInfo(primaryAccessToken, function (err, user) {
               this._setUserProfile(user);
             }.bind(this));
           }.bind(this))
         }.bind(this));
-      },
+      }
 
-      unlinkAccount: function (connection) {
+      unlinkAccount(connection) {
         return new Promise(function (resolve, reject) {
           var primaryAccessToken = localStorage.getItem('auth0:accessToken');
           var idToken = localStorage.getItem('auth0:authUser');
@@ -247,7 +253,8 @@
           }.bind(this));
         }.bind(this));
       }
-    });
+    };
+    customElements.define(Auth0Auth.is, Auth0Auth);
 
   </script>
 </dom-module>

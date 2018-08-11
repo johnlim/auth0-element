@@ -1,4 +1,4 @@
-<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../polymer/polymer-element.html">
 <link rel="import" href="auth0.html">
 
 <dom-module id="auth0-link-account">
@@ -7,32 +7,34 @@
   </template>
 
   <script>
-    Polymer({
-
-      is: 'auth0-link-account',
-
-      properties: {
-        connection: {
+    class Auth0LinkAccount extends Polymer.Element {
+      static get is() {return 'auth0-link-account'}
+      static get properties() {
+        return {
+          connection: {
           type: String,
           notify: true
-        },
-        clientId: {
-          type: String
-        },
-        domain: {
-          type: String
-        },
-        options: {
-          type: Object
+          },
+          clientId: {
+            type: String
+          },
+          domain: {
+            type: String
+          },
+          options: {
+            type: Object
+          }
         }
-      },
+      }
 
-      observers: [
-        '_initAccountLinking(connection)'
-      ],
+      static get observers() {
+        return [
+          '_initAccountLinking(connection)'
+        ]
+      }
 
-      _initAccountLinking: function(connection) {
-        if(!connection) return;
+      _initAccountLinking(connection) {
+        if(!connection) {return}
         localStorage.setItem('auth0:link-account', connection);
 
         var webAuth = new auth0.WebAuth({
@@ -43,8 +45,8 @@
         var options = Object.assign({}, this.options, {connection: this.connection});
 
         webAuth.authorize(options);
-      }
-    });
+    }
 
+    customElements.define(Auth0LinkAccount.is, Auth0LinkAccount);
   </script>
 </dom-module>
