@@ -1,8 +1,8 @@
 import { PolymerElement } from '@polymer/polymer/polymer-element.js';
 import '@polymer/iron-ajax/iron-ajax.js';
-import './auth0.js';
-import './auth0-lock.js';
-import 'jwt-decode/jwt-decode.js';
+import 'auth0-js/build/auth0.js';
+import 'auth0-lock/lib/lock.js';
+import 'jwt-decode/build/jwt-decode.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 class Auth0Auth extends PolymerElement {
   static get template() {

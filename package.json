@@ -17,7 +17,10 @@
   "author": "John Lim Ding Wei",
   "dependencies": {
     "@polymer/polymer": "^3.0.0",
-    "@polymer/iron-ajax": "^3.0.0-pre.18"
+    "@polymer/iron-ajax": "^3.0.0-pre.18",
+    "auth0-js": "^9.7.3",
+    "auth0-lock": "^11.7.2",
+    "jwt-decode": "^2.2.0"
   },
   "devDependencies": {
     "@polymer/iron-component-page": "^3.0.0-pre.18",
