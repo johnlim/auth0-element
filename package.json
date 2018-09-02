@@ -5,7 +5,7 @@
     "polymer",
     "auth0"
   ],
-  "name": "@polymer/auth0-element",
+  "name": "auth0-element",
   "version": "6.0.0",
   "resolutions": {
     "inherits": "2.0.3",
