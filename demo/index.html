@@ -1,47 +1,41 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-  <head>
-    <title>auth0-element demo</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
-    <script src="../../../@webcomponents/webcomponentsjs/webcomponents-bundle.js"></script>
+<head>
+  <script>if (!window.customElements) { document.write('<!--'); }</script>
+  <script type="text/javascript" src="../node_modules/@webcomponents/webcomponentsjs/custom-elements-es5-adapter.js"></script>
+  <!--! do not remove -->
+  <script type="module" src="../build/js/main.min.js"></script>
+  <!--<script type="module" src="../node_modules/@polymer/polymer/lib/elements/dom-bind.js"></script>-->
+</head>
+<body>
+  <dom-bind id="auth0">
+    <template is="dom-bind">
+      <auth0-auth
+              id="auth0"
+              client-id="LP1BxaYQm2NQTZG64MQqHmI2xxDiRMaf"
+              domain="johnlim.au.auth0.com"
+              options="{{auth0Options}}"
+              logout-redirect-to="{{auth0Options.redirectUri}}"
+              user-profile="{{user}}"
+              id-token="{{idToken}}"
+              query-params="{{params}}"
+              jwt-manager="">
+      </auth0-auth>
+    </template>
+  </dom-bind>
+<script>
+  var app = document.querySelector('#auth0');
+  app.auth0Options = {
+    auth: {
+      scope: 'openid email',
+      redirectUri: window.location.href,
+      responseType: 'token',
+      connection: 'Username-Password-Authentication',
 
-    <script type="module" src="../../../@polymer/iron-demo-helpers/demo-pages-shared-styles.js"></script>
-    <script type="module" src="../../../@polymer/iron-demo-helpers/demo-snippet.js"></script>
-
-    <script type="module" src="./auth0-element-demo.js"></script>
-
-    <!-- FIXME(polymer-modulizer):
-        These imperative modules that innerHTML your HTML are
-        a hacky way to be sure that any mixins in included style
-        modules are ready before any elements that reference them are
-        instantiated, otherwise the CSS @apply mixin polyfill won't be
-        able to expand the underlying CSS custom properties.
-        See: https://github.com/Polymer/polymer-modulizer/issues/154
-        -->
-    <script type="module">
-const $_documentContainer = document.createElement('template');
-
-$_documentContainer.innerHTML = `<style is="custom-style" include="demo-pages-shared-styles">
-    </style>`;
-
-document.head.appendChild($_documentContainer.content);
+    },
+    allowedConnections: ['Username-Password-Authentication'],
+    closable: false
+  };
 </script>
-  </head>
-  <body>
-
-    <script type="module">
-const $_documentContainer = document.createElement('template');
-
-$_documentContainer.innerHTML = `<div class="vertical-section-container centered">
-      <h3>Integrating Auth0 with Firebase</h3>
-        <template is="dom-bind">
-          <auth0-element-demo></auth0-element-demo>
-        </template>
-    </div>`;
-
-document.body.appendChild($_documentContainer.content);
-</script>
-
-  </body>
+</body>
 </html>
