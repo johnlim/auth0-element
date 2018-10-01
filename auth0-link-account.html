@@ -8,12 +8,15 @@
 
   <script>
     class Auth0LinkAccount extends Polymer.Element {
-      static get is() {return 'auth0-link-account'}
+      static get is() {
+        return 'auth0-link-account'
+      }
+
       static get properties() {
         return {
           connection: {
-          type: String,
-          notify: true
+            type: String,
+            notify: true
           },
           clientId: {
             type: String
@@ -34,7 +37,9 @@
       }
 
       _initAccountLinking(connection) {
-        if(!connection) {return}
+        if (!connection) {
+          return
+        }
         localStorage.setItem('auth0:link-account', connection);
 
         var webAuth = new auth0.WebAuth({
@@ -45,8 +50,8 @@
         var options = Object.assign({}, this.options, {connection: this.connection});
 
         webAuth.authorize(options);
+      }
     }
-
     customElements.define(Auth0LinkAccount.is, Auth0LinkAccount);
   </script>
 </dom-module>
