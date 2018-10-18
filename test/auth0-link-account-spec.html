@@ -24,23 +24,21 @@
       };
 
       suite('auth0-link-account', function() {
-        var auth0Lock, stubLockDotShow;
+        var auth0, stubAuthorize;
         setup(function () {
-          stubLockDotShow =  sinon.stub().returns("");
-          auth0Lock = sinon.stub(window, 'Auth0Lock').returns({
-            show: stubLockDotShow,
-            on: function () {}
-          });
+          stubAuthorize = sinon.stub().returns("");
+          auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
+            authorize: stubAuthorize
+          })
         });
 
         teardown(function () {
-          auth0Lock.restore();
+          auth0.restore();
           clearLocalStorage();
         });
 
         test('should set key value pair in localStorage when linking is initiated', function(done) {
           var element = fixture('basic');
-          element.queryParams = {};
           element.options = {};
           element.clientId = 'auth0-clientId';
           element.domain = 'auth0-domain';
@@ -51,28 +49,25 @@
           })
         });
 
-        test('should show auth0 lock when linking is initiated', function(done) {
+        test('should call authorize when linking is initiated', function(done) {
           var element = fixture('basic');
-          element.queryParams = {};
           element.options = {};
           element.clientId = 'auth0-clientId';
           element.domain = 'auth0-domain';
           element.connection = 'google-oauth2';
           flush(function () {
-            assert.equal(stubLockDotShow.callCount, 1);
+            assert.equal(stubAuthorize.callCount, 1);
             done()
           })
         });
 
         test('should use the connection specified', function(done) {
           var element = fixture('basic');
-          element.queryParams = {};
-          element.options = {allowedConnections: ['github']};
           element.clientId = 'auth0-clientId';
           element.domain = 'auth0-domain';
           element.connection = 'google-oauth2';
           flush(function () {
-            sinon.assert.calledWith(auth0Lock, 'auth0-clientId', 'auth0-domain', {allowedConnections: ['google-oauth2']});
+            sinon.assert.calledWith(stubAuthorize, {connection: element.connection});
             done()
           })
         });
