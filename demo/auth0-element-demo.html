@@ -90,8 +90,11 @@
           value: function () {
             return {
               auth: {
+                params: {
+                  scope: 'openid email', //lock options
+                },
                 scope: 'openid email',
-                redirectUri: window.location.origin + '/auth0-element/components/auth0-element/demo/',
+                redirectUri: window.location.href,
                 responseType: 'token',
                 connection: 'Username-Password-Authentication',
 
