@@ -1,6 +1,7 @@
 import { PolymerElement } from '@polymer/polymer/polymer-element.js';
-import './auth0.js';
+import auth0 from 'auth0-js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+
 class Auth0Delegate extends PolymerElement {
   static get template() {
     return html`

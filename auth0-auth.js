@@ -60,7 +60,14 @@ class Auth0Auth extends PolymerElement {
       },
       _expirationMonitor: {
         type: Object
-      }
+      },
+      prop1: {
+        type: String,
+        value: 'auth0-element'
+      },
+      x: Object,
+      y: Object,
+      z: Object
     }
   }
 
@@ -71,6 +78,15 @@ class Auth0Auth extends PolymerElement {
     ]
   }
 
+  constructor() {
+    super();
+    this.x = auth0;
+    this.y = Auth0Lock;
+    this.z = Auth0Lock;
+    console.log('calling constructor this.x', this.x)
+    console.log('calling constructor this.y', this.y)
+    console.log('calling constructor this.z', this.z)
+  }
   _init(clientId, domain, options) {
     if(clientId !== undefined && domain !== undefined && options !== undefined) {
       // instantiate Lock
@@ -128,7 +144,7 @@ class Auth0Auth extends PolymerElement {
               return
             }
             //else
-            var lock = new Auth0Lock(this.clientId, this.domain, this.options);
+            var lock = new Auth0Auth.lock(this.clientId, this.domain, this.options);
             lock.show();
           } else {
             this.auth0.client.userInfo(result.accessToken, function(err, user) {
@@ -253,3 +269,4 @@ class Auth0Auth extends PolymerElement {
   }
 }
 customElements.define(Auth0Auth.is, Auth0Auth);
+Auth0Auth.lock = Auth0Lock;
