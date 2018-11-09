@@ -42,12 +42,12 @@
             type: Object,
             readOnly: true
           },
-          localStorageKey: {
+          idToken: {
             type: String,
             readOnly: true,
-            value: "auth0:authUser"
+            notify: true
           },
-          idToken: {
+          accessToken: {
             type: String,
             readOnly: true,
             notify: true
@@ -100,22 +100,23 @@
       }
 
       _parseHash() {
-        if (this._tokenIsValid()) {
-          var idToken = localStorage.getItem('auth0:authUser');
-          var accessToken = localStorage.getItem('auth0:accessToken');
-          this.auth0.client.userInfo(accessToken, function(err, user) {
-            this._setUserProfile(user);
-            this._setIdToken(idToken);
-          }.bind(this));
-          return
-        }
+//        if (this._tokenIsValid()) {
+//          var idToken = localStorage.getItem('auth0:authUser');
+//          var accessToken = localStorage.getItem('auth0:accessToken');
+//          this.auth0.client.userInfo(accessToken, function(err, user) {
+//            this._setUserProfile(user);
+//            this._setIdToken(idToken);
+//          }.bind(this));
+//          return
+//        }
         this.auth0.parseHash(function(err, authResult) {
           if (authResult && authResult.accessToken && authResult.idToken) {
             this.auth0.client.userInfo(authResult.accessToken, function(err, user) {
-              localStorage.setItem('auth0:authUser', authResult.idToken);
-              localStorage.setItem('auth0:accessToken', authResult.accessToken);
+//              localStorage.setItem('auth0:authUser', authResult.idToken);
+//              localStorage.setItem('auth0:accessToken', authResult.accessToken);
               this._setUserProfile(user);
               this._setIdToken(authResult.idToken);
+              this._setAccessToken(authResult.accessToken);
             }.bind(this));
             window.location.hash = '';
             return
@@ -134,10 +135,11 @@
                 lock.show();
               } else {
                 this.auth0.client.userInfo(result.accessToken, function(err, user) {
-                  localStorage.setItem('auth0:authUser', result.idToken);
-                  localStorage.setItem('auth0:accessToken', result.accessToken);
+//                  localStorage.setItem('auth0:authUser', result.idToken);
+//                  localStorage.setItem('auth0:accessToken', result.accessToken);
                   this._setUserProfile(user);
                   this._setIdToken(result.idToken);
+                  this._setAccessToken(result.accessToken);
                 }.bind(this));
               }
             }.bind(this));
@@ -160,25 +162,26 @@
             lock.show();
           } else {
             this.auth0.client.userInfo(result.accessToken, function(err, user) {
-              localStorage.setItem('auth0:authUser', result.idToken);
-              localStorage.setItem('auth0:accessToken', result.accessToken);
+//              localStorage.setItem('auth0:authUser', result.idToken);
+//              localStorage.setItem('auth0:accessToken', result.accessToken);
               this._setUserProfile(user);
               this._setIdToken(result.idToken);
+              this._setAccessToken(result.accessToken);
             }.bind(this));
           }
         }.bind(this));
       }
 
-      _tokenIsValid() {
-        var idToken = localStorage.getItem('auth0:authUser');
-        var accessToken = localStorage.getItem('auth0:accessToken');
-        if (idToken && accessToken) {
-          var decoded = jwt_decode(idToken);
-          var timeToExpiryInMilliseconds= decoded.exp * 1000 - Date.now();
-          return timeToExpiryInMilliseconds > 0 ? true : false
-        }
-        return false
-      }
+//      _tokenIsValid() {
+//        var idToken = this.idToken; //localStorage.getItem('auth0:authUser');
+//        var accessToken = this.accessToken; //localStorage.getItem('auth0:accessToken');
+//        if (idToken && accessToken) {
+//          var decoded = jwt_decode(idToken);
+//          var timeToExpiryInMilliseconds= decoded.exp * 1000 - Date.now();
+//          return timeToExpiryInMilliseconds > 0 ? true : false
+//        }
+//        return false
+//      }
 
       _monitorExpiry(idToken, jwtManager) {
         if (jwtManager === true && idToken) {
@@ -206,7 +209,6 @@
       }
 
       signOut(clientId) {
-        localStorage.removeItem(this.localStorageKey);
         this.auth0.logout({returnTo: this.logoutRedirectTo, client_id: clientId}, {version: 'v2'});
       }
 

@@ -129,22 +129,28 @@
           assert(element.userProfile);
         });
 
-        test('id token will be stored to local storage', function () {
-          var element = fixture('basic');
-          element._init('auth0-clientId', 'auth0-domain', {auth: {redirectUri: '', responseType: 'token'}});
-          assert.equal('idToken',localStorage.getItem("auth0:authUser"))
-        });
+//        test('id token will be stored to local storage', function () {
+//          var element = fixture('basic');
+//          element._init('auth0-clientId', 'auth0-domain', {auth: {redirectUri: '', responseType: 'token'}});
+//          assert.equal('idToken',localStorage.getItem("auth0:authUser"))
+//        });
 
-        test('access token will be stored to local storage', function () {
-          var element = fixture('basic');
-          element._init('auth0-clientId', 'auth0-domain', {auth: {redirectUri: '', responseType: 'token'}});
-          assert.equal('accessToken',localStorage.getItem("auth0:accessToken"))
-        });
+//        test('access token will be stored to local storage', function () {
+//          var element = fixture('basic');
+//          element._init('auth0-clientId', 'auth0-domain', {auth: {redirectUri: '', responseType: 'token'}});
+//          assert.equal('accessToken',localStorage.getItem("auth0:accessToken"))
+//        });
 
         test('id token property will be set', function () {
           var element = fixture('basic');
           element._init('auth0-clientId', 'auth0-domain', {auth: {redirectUri: '', responseType: 'token'}});
           assert.equal('idToken', element.idToken)
+        });
+
+        test('access token property will be set', function () {
+          var element = fixture('basic');
+          element._init('auth0-clientId', 'auth0-domain', {auth: {redirectUri: '', responseType: 'token'}});
+          assert.equal('accessToken', element.accessToken)
         });
       });
 
@@ -167,9 +173,6 @@
             parseHash: function (fn) {
               return fn(null, null)
             },
-            renewAuth: function(options, fn) {
-              return fn({}, null)
-            },
             checkSession: function (options, fn) {
               return fn({}, null)
             }
@@ -185,9 +188,6 @@
           auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
             parseHash: function (fn) {
               return fn(null, {idToken: 'idToken'})
-            },
-            renewAuth: function(options, fn) {
-              return fn({}, null)
             },
             checkSession: function (options, fn) {
               return fn({}, null)
@@ -205,9 +205,6 @@
             parseHash: function (fn) {
               return fn(null, {accessToken: 'accessToken'})
             },
-            renewAuth: function(options, fn) {
-              return fn({}, null)
-            },
             checkSession: function (options, fn) {
               return fn({}, null)
             }
@@ -223,9 +220,6 @@
           auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
             parseHash: function (fn) {
               return fn(null, {error: 'error'})
-            },
-            renewAuth: function(options, fn) {
-              return fn({}, null)
             },
             checkSession: function (options, fn) {
               return fn({}, null)
@@ -243,9 +237,6 @@
           auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
             parseHash: function (fn) {
               return fn(null, {error: 'error'})
-            },
-            renewAuth: function(options, fn) {
-              return fn({}, null)
             },
             checkSession: function (options, fn) {
               return fn({}, null)
@@ -266,14 +257,27 @@
       suite('When user is already logged in', function() {
         var auth0;
         setup(function () {
-          setLocalStorage();
+//          setLocalStorage();
           auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
+            parseHash: function (fn) {
+              return fn(null, {})
+            },
+            checkSession: function (options, fn) {
+              return fn(null, {accessToken: "accessToken", idToken: "idToken"})
+            },
             client: {
               userInfo: function (accessToken, fn) {
                 return fn(null, {user: 'userInfo'})
               }
             }
           });
+//          auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
+//            client: {
+//              userInfo: function (accessToken, fn) {
+//                return fn(null, {user: 'userInfo'})
+//              }
+//            }
+//          });
         });
 
         teardown(function () {
@@ -283,20 +287,22 @@
 
         test('User profile should be set', function() {
           var element = fixture('basic');
-          element._tokenIsValid = function () {
-            return true;
-          };
-          element._init('auth0-clientId', 'auth0-domain', {auth: {redirectUri: '', responseType: 'token'}});
+//          element._tokenIsValid = function () {
+//            return true;
+//          };
+          element.options = {auth: {redirectUri: '', responseType: 'token', scope: "openId"}};
+          element._init('auth0-clientId', 'auth0-domain', element.options);
           assert(element.userProfile);
         });
 
 
         test('id token property will be set', function () {
           var element = fixture('basic');
-          element._tokenIsValid = function () {
-            return true;
-          };
-          element._init('auth0-clientId', 'auth0-domain', {auth: {redirectUri: '', responseType: 'token'}});
+//          element._tokenIsValid = function () {
+//            return true;
+//          };
+          element.options = {auth: {redirectUri: '', responseType: 'token', scope: "openId"}};
+          element._init('auth0-clientId', 'auth0-domain', element.options);
           assert.equal('idToken', element.idToken)
         });
 
@@ -314,13 +320,10 @@
       suite('When there is an active SSO session', function() {
         var auth0;
         setup(function () {
-          clearLocalStorage();
+//          clearLocalStorage();
           auth0 = sinon.stub(window.auth0, 'WebAuth').returns({
             parseHash: function (fn) {
               return fn(null, {error: 'error'})
-            },
-            renewAuth: function(options, fn) {
-              return fn(null, {accessToken: 'accessToken', idToken: 'idToken'})
             },
             checkSession: function (options, fn) {
               return fn(null, {idToken: 'idToken', accessToken: 'accessToken'})
@@ -334,7 +337,7 @@
         });
 
         teardown(function () {
-          clearLocalStorage();
+//          clearLocalStorage();
           auth0.restore();
         });
 
@@ -345,19 +348,19 @@
           assert(element.userProfile);
         });
 
-        test('access token should be stored to local storage', function () {
-          var element = fixture('basic');
-          element.options = {auth: {scope: 'openId'}};
-          element._init('auth0-clientId', 'auth0-domain', {auth: {redirectUri: '', responseType: 'token'}});
-          assert.equal('accessToken',localStorage.getItem("auth0:accessToken"))
-        });
-
-        test('id token should be stored to local storage', function () {
-          var element = fixture('basic');
-          element.options = {auth: {scope: 'openId'}};
-          element._init('auth0-clientId', 'auth0-domain', {auth: {redirectUri: '', responseType: 'token'}});
-          assert.equal('idToken',localStorage.getItem("auth0:authUser"))
-        });
+//        test('access token should be stored to local storage', function () {
+//          var element = fixture('basic');
+//          element.options = {auth: {scope: 'openId'}};
+//          element._init('auth0-clientId', 'auth0-domain', {auth: {redirectUri: '', responseType: 'token'}});
+//          assert.equal('accessToken',localStorage.getItem("auth0:accessToken"))
+//        });
+//
+//        test('id token should be stored to local storage', function () {
+//          var element = fixture('basic');
+//          element.options = {auth: {scope: 'openId'}};
+//          element._init('auth0-clientId', 'auth0-domain', {auth: {redirectUri: '', responseType: 'token'}});
+//          assert.equal('idToken',localStorage.getItem("auth0:authUser"))
+//        });
 
         test('id token property will be set', function () {
           var element = fixture('basic');
