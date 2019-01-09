@@ -1,20 +1,24 @@
-var urljoin = require('url-join');
-var WinChan = require('winchan');
+import urljoin from 'url-join';
+import WinChan from 'winchan';
 
-var urlHelper = require('../helper/url');
-var assert = require('../helper/assert');
-var responseHandler = require('../helper/response-handler');
-var PopupHandler = require('../helper/popup-handler');
-var objectHelper = require('../helper/object');
-var Warn = require('../helper/warn');
-var TransactionManager = require('./transaction-manager');
+import urlHelper from '../helper/url';
+import assert from '../helper/assert';
+import responseHandler from '../helper/response-handler';
+import PopupHandler from '../helper/popup-handler';
+import objectHelper from '../helper/object';
+import windowHelper from '../helper/window';
+import Warn from '../helper/warn';
+import TransactionManager from './transaction-manager';
+import CrossOriginAuthentication from './cross-origin-authentication';
 
 function Popup(webAuth, options) {
   this.baseOptions = options;
+  this.baseOptions.popupOrigin = options.popupOrigin;
   this.client = webAuth.client;
   this.webAuth = webAuth;
 
-  this.transactionManager = new TransactionManager(this.baseOptions.transaction);
+  this.transactionManager = new TransactionManager(this.baseOptions);
+  this.crossOriginAuthentication = new CrossOriginAuthentication(webAuth, this.baseOptions);
   this.warn = new Warn({
     disableWarnings: !!options._disableDeprecationWarnings
   });
@@ -77,12 +81,43 @@ Popup.prototype.getPopupHandler = function(options, preload) {
  * @param {String} options.hash the url hash. If not provided it will extract from window.location.hash
  * @param {String} [options.state] value originally sent in `state` parameter to {@link authorize} to mitigate XSRF
  * @param {String} [options.nonce] value originally sent in `nonce` parameter to {@link authorize} to prevent replay attacks
- * @param {String} [options._idTokenVerification] makes parseHash perform or skip `id_token` verification. We **strongly** recommend validating the `id_token` yourself if you disable the verification.
  * @see   {@link parseHash}
  */
 Popup.prototype.callback = function(options) {
   var _this = this;
+  var theWindow = windowHelper.getWindow();
+  options = options || {};
+  var originUrl = options.popupOrigin || this.baseOptions.popupOrigin || windowHelper.getOrigin();
+
+  /*
+    in IE 11, there's a bug that makes window.opener return undefined.
+    The callback page will still call `popup.callback()` which will run this method
+    in the relay page. WinChan expects the relay page to have a global `doPost` function,
+    which will be called with the response.
+
+    IE11 Bug: https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/110920/
+   */
+  if (!theWindow.opener) {
+    theWindow.doPost = function(msg) {
+      if (theWindow.parent) {
+        theWindow.parent.postMessage(msg, originUrl);
+      }
+    };
+    return;
+  }
+
   WinChan.onOpen(function(popupOrigin, r, cb) {
+    if (popupOrigin !== originUrl) {
+      return cb({
+        error: 'origin_mismatch',
+        error_description:
+          "The popup's origin (" +
+          popupOrigin +
+          ') should match the `popupOrigin` parameter (' +
+          originUrl +
+          ').'
+      });
+    }
     _this.webAuth.parseHash(options || {}, function(err, data) {
       return cb(err || data);
     });
@@ -94,11 +129,10 @@ Popup.prototype.callback = function(options) {
  *
  * @method authorize
  * @param {Object} options
- * @param {String} [options.domain] your Auth0 domain
- * @param {String} [options.clientID] your Auth0 client identifier obtained when creating the client in the Auth0 Dashboard
+ * @param {String} [options.clientID] the Client ID found on your Application settings page
  * @param {String} options.redirectUri url that the Auth0 will redirect after Auth with the Authorization Response
- * @param {String} options.responseType type of the response used by OAuth 2.0 flow. It can be any space separated list of the values `code`, `token`, `id_token`. {@link https://openid.net/specs/oauth-v2-multiple-response-types-1_0}
- * @param {String} [options.responseMode] how the Auth response is encoded and redirected back to the client. Supported values are `query`, `fragment` and `form_post`. {@link https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#ResponseModes}
+ * @param {String} options.responseType type of the response used by OAuth 2.0 flow. It can be any space separated list of the values `code`, `token`, `id_token`. {@link https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html}
+ * @param {String} [options.responseMode] how the Auth response is encoded and redirected back to the client. Supported values are `query`, `fragment` and `form_post`. The `query` value is only supported when `responseType` is `code`. {@link https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#ResponseModes}
  * @param {String} [options.state] value used to mitigate XSRF attacks. {@link https://auth0.com/docs/protocols/oauth2/oauth-state}
  * @param {String} [options.nonce] value used to mitigate replay attacks when using Implicit Grant. {@link https://auth0.com/docs/api-auth/tutorials/nonce}
  * @param {String} [options.scope] scopes to be requested during Auth. e.g. `openid email`
@@ -121,6 +155,7 @@ Popup.prototype.authorize = function(options, cb) {
       'scope',
       'domain',
       'audience',
+      'tenant',
       'responseType',
       'redirectUri',
       '_csrf',
@@ -138,8 +173,8 @@ Popup.prototype.authorize = function(options, cb) {
     }
   );
 
-  // the relay page should not be necesary as long it happens in the same domain
-  // (a redirectUri shoul be provided). It is necesary when using OWP
+  // the relay page should not be necessary as long it happens in the same domain
+  // (a redirectUri shoul be provided). It is necessary when using OWP
   relayUrl = urljoin(this.baseOptions.rootUrl, 'relay.html');
 
   // if a owp is enabled, it should use the owp flag
@@ -161,7 +196,7 @@ Popup.prototype.authorize = function(options, cb) {
   }
 
   params = this.transactionManager.process(params);
-
+  params.scope = params.scope || 'openid profile email';
   delete params.domain;
 
   url = this.client.buildAuthorizeUrl(params);
@@ -181,55 +216,18 @@ Popup.prototype.authorize = function(options, cb) {
  * @param {Object} options
  * @param {String} [options.redirectUri] url that the Auth0 will redirect after Auth with the Authorization Response
  * @param {String} [options.responseType] type of the response used. It can be any of the values `code` and `token`
- * @param {String} [options.responseMode] how the AuthN response is encoded and redirected back to the client. Supported values are `query` and `fragment`
+ * @param {String} [options.responseMode] how the AuthN response is encoded and redirected back to the client. Supported values are `query` and `fragment`. The `query` value is only supported when `responseType` is `code`.
  * @param {String} [options.scope] scopes to be requested during AuthN. e.g. `openid email`
  * @param {credentialsCallback} cb
  */
 Popup.prototype.loginWithCredentials = function(options, cb) {
-  var params;
-  var popup;
-  var url;
-  var relayUrl;
-
-  /* eslint-disable */
-  assert.check(
-    options,
-    { type: 'object', message: 'options parameter is not valid' },
-    {
-      clientID: { optional: true, type: 'string', message: 'clientID option is required' },
-      redirectUri: { optional: true, type: 'string', message: 'redirectUri option is required' },
-      responseType: { optional: true, type: 'string', message: 'responseType option is required' },
-      scope: { optional: true, type: 'string', message: 'scope option is required' },
-      audience: { optional: true, type: 'string', message: 'audience option is required' }
-    }
-  );
-  /* eslint-enable */
-
-  popup = this.getPopupHandler(options);
-
+  options.realm = options.realm || options.connection;
+  options.popup = true;
   options = objectHelper
-    .merge(this.baseOptions, [
-      'clientID',
-      'scope',
-      'domain',
-      'audience',
-      '_csrf',
-      'state',
-      '_intstate',
-      'nonce'
-    ])
-    .with(objectHelper.blacklist(options, ['popupHandler']));
-
-  params = objectHelper.pick(options, ['clientID', 'domain']);
-  params.options = objectHelper.toSnakeCase(
-    objectHelper.pick(options, ['password', 'connection', 'state', 'scope', '_csrf', 'device'])
-  );
-  params.options.username = options.username || options.email;
-
-  url = urljoin(this.baseOptions.rootUrl, 'sso_dbconnection_popup', options.clientID);
-  relayUrl = urljoin(this.baseOptions.rootUrl, 'relay.html');
-
-  return popup.load(url, relayUrl, { params: params }, responseHandler(cb));
+    .merge(this.baseOptions, ['redirectUri', 'responseType', 'state', 'nonce'])
+    .with(objectHelper.blacklist(options, ['popupHandler', 'connection']));
+  options = this.transactionManager.process(options);
+  this.crossOriginAuthentication.login(options, cb);
 };
 
 /**
@@ -300,4 +298,4 @@ Popup.prototype.signupAndLogin = function(options, cb) {
   );
 };
 
-module.exports = Popup;
+export default Popup;

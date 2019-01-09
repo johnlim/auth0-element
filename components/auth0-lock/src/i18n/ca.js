@@ -4,8 +4,11 @@
 export default {
   error: {
     forgotPassword: {
-      too_many_requests: "S'han exhaurit els intents per restablir la contrasenya. Espereu una estona i intenteu-ho de nou.",
-      'lock.fallback': 'Hi ha hagut un error en canviar la contrasenya.'
+      too_many_requests:
+        "S'han exhaurit els intents per restablir la contrasenya. Espereu una estona i intenteu-ho de nou.",
+      'lock.fallback': 'Hi ha hagut un error en canviar la contrasenya.',
+      enterprise_email:
+        "El domini del vostre correu electrònic forma part d'un proveïdor d'identitat empresarial. Per restablir la contrasenya, consulteu l'administrador de seguretat."
     },
     login: {
       blocked_user: "L'usuari està bloquejat.",
@@ -14,16 +17,23 @@ export default {
       'lock.invalid_code': 'El codi és incorrecte.',
       'lock.invalid_email_password': "L'adreça o contrasenya no són correctes.",
       'lock.invalid_username_password': "El nom d'usuari o contrasenya no són correctes.",
-      'lock.network': "No s'ha pogut accedir al servidor. Reviseu la vostra connexió i intenteu-ho de nou.",
+      'lock.network':
+        "No s'ha pogut accedir al servidor. Reviseu la vostra connexió i intenteu-ho de nou.",
       'lock.popup_closed': "S'ha tancat la finestra emergent. Intenteu-ho de nou.",
       'lock.unauthorized': "No hi teniu permís d'accés. Intenteu-ho de nou.",
-      'lock.mfa_registration_required': 'Cal fer una autenticació multifactorial però el vostre dispositiu no està registrat. Si us plau registreu-lo abans de continuar.',
+      'lock.mfa_registration_required':
+        'Cal fer una autenticació multifactorial però el vostre dispositiu no està registrat. Si us plau registreu-lo abans de continuar.',
       'lock.mfa_invalid_code': 'El codi és incorrecte. Intenteu-ho de nou.',
-      password_change_required: 'Cal que actualitzeu la vostra contrasenya, bé perquè és la primera vegada que entreu, o perquè la contrasenya ha caducat.',
-      password_leaked: "S'ha bloquejat el vostre accés ja que s'ha filtrat la contrasenya a través un altre lloc web. Heu rebut un correu amb instruccions per poder restablir-hi l'accés.",
-      too_many_attempts: "Hi ha hagut massa intents consecutius fallits d'inici de sessió, i se us ha bloquejat l'accés.",
-      session_missing: "No s'ha pogut completar la vostra petició d'autenticació. Tanqueu tots els diàlegs oberts i intenteu-ho de nou.",
-      'hrd.not_matching_email': 'Si us plau, utilitzeu el correu electrònic corporatiu per iniciar sessió.'
+      password_change_required:
+        'Cal que actualitzeu la vostra contrasenya, bé perquè és la primera vegada que entreu, o perquè la contrasenya ha caducat.',
+      password_leaked:
+        "S'ha bloquejat el vostre accés ja que s'ha filtrat la contrasenya a través un altre lloc web. Heu rebut un correu amb instruccions per poder restablir-hi l'accés.",
+      too_many_attempts:
+        "Hi ha hagut massa intents consecutius fallits d'inici de sessió, i se us ha bloquejat l'accés.",
+      session_missing:
+        "No s'ha pogut completar la vostra petició d'autenticació. Tanqueu tots els diàlegs oberts i intenteu-ho de nou.",
+      'hrd.not_matching_email':
+        'Si us plau, utilitzeu el correu electrònic corporatiu per iniciar sessió.'
     },
     passwordless: {
       'bad.email': "L'adreça de correu no és vàlida",
@@ -54,11 +64,13 @@ export default {
   databaseAlternativeSignUpInstructions: 'o',
   emailInputPlaceholder: 'email@example.com',
   enterpriseLoginIntructions: 'Inicieu sessió amb les vostres credencials corporatives.',
-  enterpriseActiveLoginInstructions: 'Si us plau entreu les vostres credencials corporatives de %s.',
+  enterpriseActiveLoginInstructions:
+    'Si us plau entreu les vostres credencials corporatives de %s.',
   failedLabel: 'Error!',
   forgotPasswordTitle: 'Restabliu la contrasenya',
   forgotPasswordAction: 'Heu oblidat la contrasenya?',
-  forgotPasswordInstructions: 'Indiqueu el vostre email. Us enviarem les instruccions per restablir-la.',
+  forgotPasswordInstructions:
+    'Indiqueu el vostre email. Us enviarem les instruccions per restablir-la.',
   forgotPasswordSubmitLabel: 'Enviar email',
   invalidErrorHint: 'Invàlid',
   lastLoginInstructions: "L'última vegada vàreu iniciar sessió amb",
@@ -79,10 +91,12 @@ export default {
     specialCharacters: 'Caràcters especials (p. ex. !@#$%^&*)',
     upperCase: 'Lletres majúscules (A-Z)'
   },
-  passwordlessEmailAlternativeInstructions: 'Altrament, indiqueu el vostre email per iniciar sessió<br/>o registrar-vos',
+  passwordlessEmailAlternativeInstructions:
+    'Altrament, indiqueu el vostre email per iniciar sessió<br/>o registrar-vos',
   passwordlessEmailCodeInstructions: 'Se us ha enviat un email amb el codi a %s.',
   passwordlessEmailInstructions: 'Indiqueu el vostre email per iniciar sessió<br/>o registrar-vos',
-  passwordlessSMSAlternativeInstructions: 'Altrament, introduïu el vostre telèfon per iniciar sessió<br/>o registrar-vos',
+  passwordlessSMSAlternativeInstructions:
+    'Altrament, introduïu el vostre telèfon per iniciar sessió<br/>o registrar-vos',
   passwordlessSMSCodeInstructions: 'Se us ha enviat un SMS amb el codi<br/>a %s.',
   passwordlessSMSInstructions: 'Indiqueu el vostre telèfon per iniciar sessió<br/>o registrar-vos',
   phoneNumberInputPlaceholder: 'número de telèfon',
@@ -91,17 +105,17 @@ export default {
   resendingLabel: 'Reenviant...',
   retryLabel: 'Reintenta',
   sentLabel: 'Enviat',
-  signupTitle: 'Registre',
+  signUpTitle: 'Registre',
   signUpLabel: 'Registre',
   signUpSubmitLabel: "Registra'm",
-  signUpTerms: '',
   signUpWithLabel: 'Registreu-vos amb %s',
   socialLoginInstructions: '',
   socialSignUpInstructions: '',
   ssoEnabled: "Activat l'inici de sessió únic",
   submitLabel: 'Envia',
   unrecoverableError: 'Hi ha hagut un error.<br />Contacteu amb el suport tècnic.',
-  usernameFormatErrorHint: 'Useu lletres de %d a %d, xifres i "_"',
+  usernameFormatErrorHint:
+    'Utilitzeu %d-%d lletres, números i els següents caràcters: "_", ".", "+", "-"',
   usernameInputPlaceholder: 'el seu usuari',
   usernameOrEmailInputPlaceholder: 'usuari/email',
   title: 'Auth0',
@@ -113,5 +127,7 @@ export default {
   mfaLoginInstructions: 'Indiqueu el codi de verificació generat per la seva aplicació de mòbil.',
   mfaSubmitLabel: 'Inicia sessió',
   mfaCodeErrorHint: 'Utilitzeu %d xifres',
-  showPassword: 'Ensenya la contrasenya'
+  showPassword: 'Ensenya la contrasenya',
+  signUpTerms:
+    "En inscriure's, accepteu les nostres condicions de servei i la nostra política de privadesa."
 };

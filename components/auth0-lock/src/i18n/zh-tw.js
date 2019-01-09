@@ -5,7 +5,8 @@ export default {
   error: {
     forgotPassword: {
       too_many_requests: '嘗試登入次數太多，請稍後再試。',
-      'lock.fallback': '對不起，修改密碼時發生錯誤。'
+      'lock.fallback': '對不起，修改密碼時發生錯誤。',
+      enterprise_email: '您的電子郵件域名是企業身份提供者的一部分。要重置您的密碼，請聯繫您的安全管理員。'
     },
     login: {
       blocked_user: '帳號已被鎖定。',
@@ -92,14 +93,13 @@ export default {
   sentLabel: '發送！',
   signUpLabel: '註冊',
   signUpSubmitLabel: '註冊',
-  signUpTerms: '',
   signUpWithLabel: '透過 %s 註冊',
   socialLoginInstructions: '',
   socialSignUpInstructions: '',
   ssoEnabled: '單一簽入已啟用',
   submitLabel: '送出',
   unrecoverableError: '發生錯誤。<br />請聯絡技術人員。',
-  usernameFormatErrorHint: '請使用 %d-%d 個字母、數字或 "_" 的組合',
+  usernameFormatErrorHint: '使用 %d-%d 字母，數字和以下字符：“_”，“。”，“+”，“ - ”',
   usernameInputPlaceholder: '您的帳號',
   usernameOrEmailInputPlaceholder: '帳號 / 電子郵件信箱',
   title: 'Auth0',
@@ -107,11 +107,12 @@ export default {
   windowsAuthInstructions: '您已連接到公司網路&hellip;',
   windowsAuthLabel: 'Windows 認證',
   forgotPasswordTitle: '重置你的密碼',
-  signupTitle: '註冊',
+  signUpTitle: '註冊',
   mfaInputPlaceholder: '碼',
   mfaLoginTitle: '兩步驟驗證',
   mfaLoginInstructions: '請輸入您的移動應用程序生成的驗證碼。',
   mfaSubmitLabel: '登錄',
   mfaCodeErrorHint: '使用%d編號',
-  showPassword: '顯示密碼'
+  showPassword: '顯示密碼',
+  signUpTerms: '註冊即表示您同意我們的服務條款和隱私政策。'
 };

@@ -17,12 +17,14 @@ export default class PasswordPane extends React.Component {
   };
 
   render() {
-    const { i18n, lock, placeholder, policy, strengthMessages } = this.props;
+    const { i18n, lock, placeholder, policy, strengthMessages, hidden } = this.props;
+    const hiddenCss = hidden ? ' auth0-lock-hidden' : '';
     return (
-      <div className="auth0-lock-input-show-password">
+      <div className={`auth0-lock-input-block auth0-lock-input-show-password${hiddenCss}`}>
         <PasswordInput
           value={c.getFieldValue(lock, 'password')}
           invalidHint={i18n.str('blankErrorHint')}
+          showPasswordStrengthMessage={!c.isFieldValid(lock, 'password')}
           isValid={!c.isFieldVisiblyInvalid(lock, 'password')}
           onChange={this.handleChange}
           placeholder={placeholder}
@@ -30,12 +32,14 @@ export default class PasswordPane extends React.Component {
           disabled={l.submitting(lock)}
           policy={policy}
           showPassword={c.getFieldValue(lock, 'showPassword', false)}
+          lock={lock}
         />
-        {l.ui.allowShowPassword(lock) &&
+        {l.ui.allowShowPassword(lock) && (
           <div className="auth0-lock-show-password">
             <input type="checkbox" id="slideOne" onChange={this.handleShowPasswordChange} />
             <label htmlFor="slideOne" title={i18n.str('showPassword')} />
-          </div>}
+          </div>
+        )}
       </div>
     );
   }
@@ -46,6 +50,7 @@ PasswordPane.propTypes = {
   lock: PropTypes.object.isRequired,
   onChange: PropTypes.func,
   placeholder: PropTypes.string.isRequired,
-  policy: PropTypes.string,
-  strengthMessages: PropTypes.object
+  policy: PropTypes.object,
+  strengthMessages: PropTypes.object,
+  hidden: PropTypes.bool
 };

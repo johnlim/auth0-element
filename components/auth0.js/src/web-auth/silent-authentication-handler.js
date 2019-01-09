@@ -1,10 +1,20 @@
-var IframeHandler = require('../helper/iframe-handler');
+import IframeHandler from '../helper/iframe-handler';
+import windowHelper from '../helper/window';
 
 function SilentAuthenticationHandler(options) {
   this.authenticationUrl = options.authenticationUrl;
   this.timeout = options.timeout || 60 * 1000;
   this.handler = null;
   this.postMessageDataType = options.postMessageDataType || false;
+
+  // prefer origin from options, fallback to origin from browser, and some browsers (for example MS Edge) don't support origin; fallback to construct origin manually
+  this.postMessageOrigin =
+    options.postMessageOrigin ||
+    windowHelper.getWindow().location.origin ||
+    windowHelper.getWindow().location.protocol +
+      '//' +
+      windowHelper.getWindow().location.hostname +
+      (windowHelper.getWindow().location.port ? ':' + windowHelper.getWindow().location.port : '');
 }
 
 SilentAuthenticationHandler.create = function(options) {
@@ -34,7 +44,15 @@ SilentAuthenticationHandler.prototype.getEventValidator = function() {
     isValid: function(eventData) {
       switch (eventData.event.type) {
         case 'message':
-          // Default behaviour, return all message events.
+          // Message must come from the expected origin and iframe window.
+          if (
+            eventData.event.origin !== _this.postMessageOrigin ||
+            eventData.event.source !== _this.handler.iframe.contentWindow
+          ) {
+            return false;
+          }
+
+          // Default behaviour, return all message events from the iframe.
           if (_this.postMessageDataType === false) {
             return true;
           }
@@ -43,7 +61,12 @@ SilentAuthenticationHandler.prototype.getEventValidator = function() {
             eventData.event.data.type && eventData.event.data.type === _this.postMessageDataType
           );
 
-        case 'load': // Fall through to default
+        case 'load':
+          if (eventData.sourceObject.contentWindow.location.protocol === 'about:') {
+            // Chrome is automatically loading the about:blank page, we ignore this.
+            return false;
+          }
+        // Fall through to default
         default:
           return true;
       }
@@ -65,4 +88,4 @@ SilentAuthenticationHandler.prototype.getCallbackHandler = function(callback, us
   };
 };
 
-module.exports = SilentAuthenticationHandler;
+export default SilentAuthenticationHandler;

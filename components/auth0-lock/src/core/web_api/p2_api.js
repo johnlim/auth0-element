@@ -1,21 +1,39 @@
 import auth0 from 'auth0-js';
-import CordovaAuth0Plugin from 'auth0-js/plugins/cordova';
-import * as l from '../index';
-import { getEntity, read } from '../../store/index';
-import { normalizeError, loginCallback, normalizeAuthParams, webAuthOverrides } from './helper';
+import CordovaAuth0Plugin from 'auth0-js/dist/cordova-auth0-plugin.min.js';
+import {
+  normalizeError,
+  loginCallback,
+  normalizeAuthParams,
+  webAuthOverrides,
+  trimAuthParams
+} from './helper';
 
 class Auth0APIClient {
   constructor(lockID, clientID, domain, opts) {
     this.lockID = lockID;
     this.client = null;
     this.authOpt = null;
+    this.domain = domain;
+    this.isUniversalLogin = window.location.host === domain;
+    this._enableIdPInitiatedLogin = !!(opts._enableIdPInitiatedLogin || opts._enableImpersonation);
 
     const default_telemetry = {
       name: 'lock.js',
       version: __VERSION__,
       lib_version: auth0.version
     };
-    this._useCrossAuth = !!(opts.overrides && opts.overrides.__useCrossAuth);
+
+    var state = opts.state;
+    if (opts.params && opts.params.state) {
+      state = opts.params.state;
+    }
+
+    var nonce = opts.nonce;
+    if (opts.params && opts.params.nonce) {
+      nonce = opts.params.nonce;
+    }
+
+    const scope = opts.params && opts.params.scope;
 
     this.client = new auth0.WebAuth({
       clientID: clientID,
@@ -25,43 +43,60 @@ class Auth0APIClient {
       responseMode: opts.responseMode,
       responseType: opts.responseType,
       leeway: opts.leeway || 1,
-      plugins: [new CordovaAuth0Plugin()],
+      plugins: opts.plugins || [new CordovaAuth0Plugin()],
       overrides: webAuthOverrides(opts.overrides),
       _sendTelemetry: opts._sendTelemetry === false ? false : true,
-      _telemetryInfo: opts._telemetryInfo || default_telemetry
+      _telemetryInfo: opts._telemetryInfo || default_telemetry,
+      state,
+      nonce,
+      scope
     });
 
     this.authOpt = {
       popup: !opts.redirect,
       popupOptions: opts.popupOptions,
-      sso: opts.sso,
-      nonce: opts.nonce,
-      state: opts.state
+      nonce,
+      state,
+      scope
     };
+    if (this.isUniversalLogin && opts.sso !== undefined) {
+      this.authOpt.sso = opts.sso;
+    }
   }
 
   logIn(options, authParams, cb) {
     // TODO: for passwordless only, try to clean in auth0.js
     // client._shouldRedirect = redirect || responseType === "code" || !!redirectUrl;
-    const f = loginCallback(false, cb);
-    const loginOptions = normalizeAuthParams({ ...options, ...this.authOpt, ...authParams });
+    const f = loginCallback(false, this.domain, cb);
+    const loginOptions = trimAuthParams(
+      normalizeAuthParams({
+        ...options,
+        ...this.authOpt,
+        ...authParams
+      })
+    );
+
+    if (options.login_hint) {
+      loginOptions.login_hint = options.login_hint;
+    }
 
     if (!options.username && !options.email) {
       if (this.authOpt.popup) {
-        this.client.popup.authorize(loginOptions, f);
+        this.client.popup.authorize(
+          {
+            ...loginOptions,
+            owp: true
+          },
+          f
+        );
       } else {
         this.client.authorize(loginOptions, f);
       }
+    } else if (this.authOpt.popup) {
+      this.client.popup.loginWithCredentials(loginOptions, f);
     } else {
       loginOptions.realm = options.connection;
-      if (this._useCrossAuth) {
-        if (this.authOpt.popup) {
-          throw new Error('Cross origin login is not supported in popup mode');
-        }
-        this.client.login(loginOptions, f);
-      } else {
-        this.client.client.login(loginOptions, f);
-      }
+      this.client.login(loginOptions, f);
     }
   }
 
@@ -70,25 +105,30 @@ class Auth0APIClient {
   }
 
   signUp(options, cb) {
-    const { popup, sso } = this.authOpt;
-    const { autoLogin } = options;
-
     delete options.autoLogin;
-
-    this.client.signup(options, (err, result) => cb(err, result));
+    this.client.signup(trimAuthParams(options), (err, result) => cb(err, result));
   }
 
   resetPassword(options, cb) {
-    this.client.changePassword(options, cb);
+    this.client.changePassword(trimAuthParams(options), cb);
   }
 
-  startPasswordless(options, cb) {
-    this.client.startPasswordless(options, err => cb(normalizeError(err)));
+  passwordlessStart(options, cb) {
+    this.client.passwordlessStart(trimAuthParams(options), err => cb(normalizeError(err)));
+  }
+
+  passwordlessVerify(options, cb) {
+    const verifyOptions = {
+      ...options,
+      popup: this.authOpt.popup
+    };
+    this.client.passwordlessLogin(verifyOptions, (err, result) => cb(normalizeError(err), result));
   }
 
   parseHash(hash = '', cb) {
     return this.client.parseHash(
       {
+        __enableIdPInitiatedLogin: this._enableIdPInitiatedLogin,
         hash,
         nonce: this.authOpt.nonce,
         state: this.authOpt.state
@@ -102,16 +142,19 @@ class Auth0APIClient {
   }
 
   getProfile(token, callback) {
-    const m = read(getEntity, 'lock', this.lockID);
-    l.emitUnrecoverableErrorEvent(m, '`getProfile` is deprecated for oidcConformant clients');
+    this.getUserInfo(token, callback);
   }
 
-  getSSOData(...args) {
-    return this.client.client.getSSOData(...args);
+  getSSOData(...params) {
+    return this.client.client.getSSOData(...params);
   }
 
   getUserCountry(cb) {
-    return this.client.getUserCountry(cb);
+    return this.client.client.getUserCountry(cb);
+  }
+
+  checkSession(options, cb) {
+    return this.client.checkSession(options, cb);
   }
 }
 

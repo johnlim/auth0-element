@@ -1,31 +1,126 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Auth0APIClient logIn with credentials should call client.client.login by default 1`] = `
+exports[`Auth0APIClient getSSOData should call client.client.getSSOData 1`] = `
+Array [
+  true,
+  [Function],
+]
+`;
+
+exports[`Auth0APIClient getUserCountry should call getUserCountry 1`] = `
+Array [
+  "cb",
+]
+`;
+
+exports[`Auth0APIClient init with overrides forwards options to WebAuth 1`] = `
 Object {
+  "_sendTelemetry": true,
+  "_telemetryInfo": Object {},
+  "audience": "foo",
+  "clientID": "cid",
+  "domain": "me.auth0.com",
+  "leeway": 60,
+  "nonce": "nonce",
+  "overrides": Object {
+    "__jwks_uri": "https://jwks.com",
+    "__tenant": "tenant1",
+    "__token_issuer": "issuer1",
+  },
+  "plugins": Array [
+    Object {
+      "name": "ExamplePlugin",
+    },
+  ],
+  "redirectUri": "//localhost:8080/login/callback",
+  "responseMode": "query",
+  "responseType": "code",
+  "scope": "custom_scope",
+  "state": "state",
+}
+`;
+
+exports[`Auth0APIClient logIn should trim spaces in the email 1`] = `
+Object {
+  "email": "foo@example.com",
   "nonce": undefined,
+  "popupOptions": undefined,
   "realm": undefined,
-  "sso": undefined,
+  "scope": undefined,
+  "state": undefined,
+}
+`;
+
+exports[`Auth0APIClient logIn should trim spaces in the mfa_code 1`] = `
+Object {
+  "mfa_code": "123456",
+  "nonce": undefined,
+  "popupOptions": undefined,
+  "realm": undefined,
+  "scope": undefined,
   "state": undefined,
   "username": "foo",
 }
 `;
 
-exports[`Auth0APIClient logIn with credentials when \`overrides._useCrossAuth\` is true should call client.login 1`] = `
+exports[`Auth0APIClient logIn should trim spaces in the username 1`] = `
 Object {
   "nonce": undefined,
+  "popupOptions": undefined,
   "realm": undefined,
-  "sso": undefined,
+  "scope": undefined,
   "state": undefined,
   "username": "foo",
 }
 `;
 
-exports[`Auth0APIClient logIn with credentials when \`overrides._useCrossAuth\` is true should fail when in popup mode 1`] = `"Cross origin login is not supported in popup mode"`;
+exports[`Auth0APIClient logIn should trim spaces in the username with a space 1`] = `
+Object {
+  "nonce": undefined,
+  "popupOptions": undefined,
+  "realm": undefined,
+  "scope": undefined,
+  "state": undefined,
+  "username": "foo bar",
+}
+`;
+
+exports[`Auth0APIClient logIn with credentials should call client.login 1`] = `
+Object {
+  "nonce": undefined,
+  "popupOptions": undefined,
+  "realm": undefined,
+  "scope": undefined,
+  "state": undefined,
+  "username": "foo",
+}
+`;
+
+exports[`Auth0APIClient logIn with credentials should call popup.loginWithCredentials when redirect is false and sso is false 1`] = `
+Object {
+  "nonce": undefined,
+  "popupOptions": undefined,
+  "scope": undefined,
+  "state": undefined,
+  "username": "foo",
+}
+`;
+
+exports[`Auth0APIClient logIn with credentials should call popup.loginWithCredentials when redirect is false and sso is true 1`] = `
+Object {
+  "nonce": undefined,
+  "popupOptions": undefined,
+  "scope": undefined,
+  "state": undefined,
+  "username": "foo",
+}
+`;
 
 exports[`Auth0APIClient logIn with social/enterprise (without username and email) should call authorize when redirect===true 1`] = `
 Object {
   "nonce": undefined,
-  "sso": undefined,
+  "popupOptions": undefined,
+  "scope": undefined,
   "state": undefined,
 }
 `;
@@ -33,7 +128,126 @@ Object {
 exports[`Auth0APIClient logIn with social/enterprise (without username and email) should call popup.authorize when redirect===false 1`] = `
 Object {
   "nonce": undefined,
-  "sso": undefined,
+  "owp": true,
+  "popupOptions": undefined,
+  "scope": undefined,
   "state": undefined,
+}
+`;
+
+exports[`Auth0APIClient parseHash should pass __enableIdPInitiatedLogin when options._enableIdPInitiatedLogin===true 1`] = `
+Array [
+  Object {
+    "__enableIdPInitiatedLogin": true,
+    "hash": "hash",
+    "nonce": undefined,
+    "state": undefined,
+  },
+  "cb",
+]
+`;
+
+exports[`Auth0APIClient parseHash should pass __enableIdPInitiatedLogin when options._enableImpersonation===true 1`] = `
+Array [
+  Object {
+    "__enableIdPInitiatedLogin": true,
+    "hash": "hash",
+    "nonce": undefined,
+    "state": undefined,
+  },
+  "cb",
+]
+`;
+
+exports[`Auth0APIClient parseHash should pass __enableIdPInitiatedLogin:false when options._enableImpersonation and options._enableIdPInitiatedLogin are not present 1`] = `
+Array [
+  Object {
+    "__enableIdPInitiatedLogin": false,
+    "hash": "hash",
+    "nonce": undefined,
+    "state": undefined,
+  },
+  "cb",
+]
+`;
+
+exports[`Auth0APIClient passwordlessStart should call client.passwordlessStart 1`] = `
+Array [
+  Object {
+    "foo": "bar",
+  },
+  [Function],
+]
+`;
+
+exports[`Auth0APIClient passwordlessStart should trim spaces in the email 1`] = `
+Object {
+  "email": "foo@example.com",
+}
+`;
+
+exports[`Auth0APIClient passwordlessStart should trim spaces in the phoneNumber 1`] = `
+Object {
+  "phoneNumber": "+554899999",
+}
+`;
+
+exports[`Auth0APIClient passwordlessVerify should call client.passwordlessLogin 1`] = `
+Array [
+  Object {
+    "foo": "bar",
+    "popup": true,
+  },
+  [Function],
+]
+`;
+
+exports[`Auth0APIClient passwordlessVerify should trim spaces in the email 1`] = `
+Object {
+  "email": " foo@example.com ",
+  "popup": false,
+}
+`;
+
+exports[`Auth0APIClient passwordlessVerify should trim spaces in the phoneNumber 1`] = `
+Object {
+  "phoneNumber": " +554899999 ",
+  "popup": false,
+}
+`;
+
+exports[`Auth0APIClient resetPassword should trim spaces in the email 1`] = `
+Object {
+  "email": "foo@example.com",
+}
+`;
+
+exports[`Auth0APIClient resetPassword should trim spaces in the username 1`] = `
+Object {
+  "username": "foo",
+}
+`;
+
+exports[`Auth0APIClient resetPassword should trim spaces in the username with a space 1`] = `
+Object {
+  "username": "foo bar",
+}
+`;
+
+exports[`Auth0APIClient signUp should trim spaces in the email 1`] = `
+Object {
+  "email": "foo@example.com",
+}
+`;
+
+exports[`Auth0APIClient signUp should trim spaces in the username 1`] = `
+Object {
+  "username": "foo",
+}
+`;
+
+exports[`Auth0APIClient signUp should trim spaces in the username with a space 1`] = `
+Object {
+  "username": "foo bar",
 }
 `;

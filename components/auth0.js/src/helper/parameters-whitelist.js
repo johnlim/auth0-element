@@ -1,4 +1,9 @@
-var objectHelper = require('./object');
+// For future reference:,
+// The only parameters that should be whitelisted are parameters
+// defined by the specification, or existing parameters that we
+// need for compatibility
+
+import objectHelper from './object';
 
 var tokenParams = [
   // auth0
@@ -27,6 +32,7 @@ var authorizeParams = [
   'auth0Client',
   'owp',
   'device',
+  'realm',
 
   'protocol',
   '_csrf',
@@ -55,7 +61,12 @@ var authorizeParams = [
   'request',
   'request_uri',
   'code_challenge',
-  'code_challenge_method'
+  'code_challenge_method',
+
+  // ADDITIONAL_PARAMETERS:
+  // https://auth0.com/docs/api/authentication?javascript#social
+  'access_type',
+  'display'
 ];
 
 function oauthAuthorizeParams(warn, params) {
@@ -76,7 +87,7 @@ function oauthTokenParams(warn, params) {
   return objectHelper.pick(params, tokenParams);
 }
 
-module.exports = {
+export default {
   oauthTokenParams: oauthTokenParams,
   oauthAuthorizeParams: oauthAuthorizeParams
 };

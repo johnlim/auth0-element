@@ -21,6 +21,7 @@ export const STRATEGIES = {
   ad: 'AD / LDAP',
   adfs: 'ADFS',
   'auth0-adldap': 'AD/LDAP',
+  'auth0-oidc': 'Auth0 OpenID Connect',
   custom: 'Custom Auth',
   'google-apps': 'Google Apps',
   ip: 'IP Address',
@@ -41,7 +42,7 @@ function processOptions(opts) {
 
   if (defaultEnterpriseConnection != undefined && typeof defaultEnterpriseConnection !== 'string') {
     l.warn(
-      options,
+      opts,
       'The `defaultEnterpriseConnection` option will be ignored, because it is not a string.'
     );
     defaultEnterpriseConnection = undefined;
@@ -165,6 +166,7 @@ export function isHRDEmailValid(m, str) {
   if (
     isEmail(str) &&
     !l.hasSomeConnections(m, 'database') &&
+    !l.hasSomeConnections(m, 'passwordless') &&
     !findADConnectionWithoutDomain(m) &&
     !matchesEnterpriseConnection(m, str)
   ) {

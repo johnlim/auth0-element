@@ -1,4 +1,4 @@
-var windowHelper = require('./window');
+import windowHelper from './window';
 
 function IframeHandler(options) {
   this.url = options.url;
@@ -29,7 +29,6 @@ IframeHandler.prototype.init = function() {
 
   this.iframe = _window.document.createElement('iframe');
   this.iframe.style.display = 'none';
-  this.iframe.src = this.url;
 
   // Workaround to avoid using bind that does not work in IE8
   this.proxyEventListener = function(e) {
@@ -50,6 +49,8 @@ IframeHandler.prototype.init = function() {
   this.eventSourceObject.addEventListener(this.eventListenerType, this.proxyEventListener, false);
 
   _window.document.body.appendChild(this.iframe);
+
+  this.iframe.src = this.url;
 
   this.timeoutHandle = setTimeout(function() {
     _this.timeoutHandler();
@@ -76,7 +77,6 @@ IframeHandler.prototype.timeoutHandler = function() {
 
 IframeHandler.prototype.destroy = function() {
   var _this = this;
-  var _window = windowHelper.getWindow();
 
   clearTimeout(this.timeoutHandle);
 
@@ -86,8 +86,11 @@ IframeHandler.prototype.destroy = function() {
       _this.proxyEventListener,
       false
     );
-    _window.document.body.removeChild(_this.iframe);
+
+    if (_this.iframe.parentNode) {
+      _this.iframe.parentNode.removeChild(_this.iframe);
+    }
   }, 0);
 };
 
-module.exports = IframeHandler;
+export default IframeHandler;

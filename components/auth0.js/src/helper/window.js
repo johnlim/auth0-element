@@ -1,17 +1,31 @@
+import objectHelper from './object';
+
 function redirect(url) {
-  global.window.location = url;
+  getWindow().location = url;
 }
 
 function getDocument() {
-  return global.window.document;
+  return getWindow().document;
 }
 
 function getWindow() {
-  return global.window;
+  return window;
 }
 
-module.exports = {
+function getOrigin() {
+  var location = getWindow().location;
+  var origin = location.origin;
+
+  if (!origin) {
+    origin = objectHelper.getOriginFromUrl(location.href);
+  }
+
+  return origin;
+}
+
+export default {
   redirect: redirect,
   getDocument: getDocument,
-  getWindow: getWindow
+  getWindow: getWindow,
+  getOrigin: getOrigin
 };

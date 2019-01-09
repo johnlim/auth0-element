@@ -1,26 +1,23 @@
-var StorageHandler = require('./storage/handler');
-var storage;
+import StorageHandler from './storage/handler';
 
-function getStorage(force) {
-  if (!storage || force) {
-    storage = new StorageHandler();
-  }
-  return storage;
+function Storage(options) {
+  this.handler = new StorageHandler(options);
 }
 
-module.exports = {
-  getItem: function(key) {
-    var value = getStorage().getItem(key);
-    return value ? JSON.parse(value) : value;
-  },
-  removeItem: function(key) {
-    return getStorage().removeItem(key);
-  },
-  setItem: function(key, value) {
-    var json = JSON.stringify(value);
-    return getStorage().setItem(key, json);
-  },
-  reload: function() {
-    getStorage(true);
+Storage.prototype.getItem = function(key) {
+  var value = this.handler.getItem(key);
+  try {
+    return JSON.parse(value);
+  } catch (_) {
+    return value;
   }
 };
+Storage.prototype.removeItem = function(key) {
+  return this.handler.removeItem(key);
+};
+Storage.prototype.setItem = function(key, value, options) {
+  var json = JSON.stringify(value);
+  return this.handler.setItem(key, json, options);
+};
+
+export default Storage;

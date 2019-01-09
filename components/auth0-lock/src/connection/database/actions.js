@@ -20,13 +20,8 @@ export function logIn(id, needsMFA = false) {
   const m = read(getEntity, 'lock', id);
   const usernameField = databaseLogInWithEmail(m) ? 'email' : 'username';
   const username = c.getFieldValue(m, usernameField);
-  const customResolvedConnection = l.resolvedConnection(m);
-  let connectionName = databaseConnectionName(m);
-  if (customResolvedConnection) {
-    connectionName = customResolvedConnection.name;
-  }
   const params = {
-    connection: connectionName,
+    connection: databaseConnectionName(m),
     username: username,
     password: c.getFieldValue(m, 'password')
   };
@@ -136,6 +131,8 @@ function signUpError(id, error) {
   const errorMessage =
     i18n.html(m, ['error', 'signUp', errorKey]) ||
     i18n.html(m, ['error', 'signUp', 'lock.fallback']);
+
+  l.emitEvent(m, 'signup error', error);
 
   swap(updateEntity, 'lock', id, l.setSubmitting, false, errorMessage);
 }

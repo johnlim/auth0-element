@@ -1,8 +1,11 @@
 export default {
   error: {
     forgotPassword: {
-      too_many_requests: 'Se ha alcanzado el límite de intentos para restablecer su contraseña. Por favor, aguarde unos minutos.',
-      'lock.fallback': 'Ocurrió un error al restablecer su contraseña.'
+      too_many_requests:
+        'Se ha alcanzado el límite de intentos para restablecer su contraseña. Por favor, aguarde unos minutos.',
+      'lock.fallback': 'Ocurrió un error al restablecer su contraseña.',
+      enterprise_email:
+        'El dominio de su correo electrónico es parte de un proveedor de identidad Enterprise. Para restablecer su contraseña, consulte a su administrador de seguridad.'
     },
     login: {
       blocked_user: 'El usuario se encuentra bloqueado.',
@@ -14,12 +17,17 @@ export default {
       'lock.network': 'Ocurrió un error de red. Por favor, verifique su conexión.',
       'lock.popup_closed': 'Se ha cerrado la ventana emergente.',
       'lock.unauthorized': 'Acceso denegado. Por favor, intente nuevamente.',
-      password_change_required: 'Debe actualizar su contraseña porque es la primera vez que ingresa o porque la contraseña está vencida.',
-      password_leaked: 'Este intento ha sido bloqueado ya que usted utilizó la misma contraseña para registrarse en otra aplicación que tuvo una filtración reciente. Hemos enviado un email con las instrucciones.',
-      too_many_attempts: 'Su cuenta ha sido bloqueada luego de múltiples intentos de inicio de sesión consecutivos.',
-      'lock.mfa_registration_required': 'Por favor enrole su dispositivo antes de continuar con el segundo factor.',
+      password_change_required:
+        'Debe actualizar su contraseña porque es la primera vez que ingresa o porque la contraseña está vencida.',
+      password_leaked:
+        'Este intento ha sido bloqueado ya que usted utilizó la misma contraseña para registrarse en otra aplicación que tuvo una filtración reciente de datos. Hemos enviado un email con instrucciones para desbloquear la cuenta.',
+      too_many_attempts:
+        'Su cuenta ha sido bloqueada luego de múltiples intentos de inicio de sesión consecutivos.',
+      'lock.mfa_registration_required':
+        'Se requiere autenticación de dos factores. Por favor registre su dispositivo antes de continuar.',
       'lock.mfa_invalid_code': 'Código incorrecto. Por favor vuelva a intentarlo.',
-      session_missing: 'No es posible completar el proceso de Autenticación. Por favor, cierre todas las ventanas e intente nuevamente.',
+      session_missing:
+        'No es posible completar el proceso de Autenticación. Por favor, cierre todas las ventanas e intente nuevamente.',
       'hrd.not_matching_email': 'Por favor, use sus credenciales corporativas.'
     },
     passwordless: {
@@ -55,7 +63,8 @@ export default {
   failedLabel: 'Error!',
   forgotPasswordTitle: 'Restablecer contraseña',
   forgotPasswordAction: '¿Olvidó su contraseña?',
-  forgotPasswordInstructions: 'Por favor ingrese su dirección de correo. Le enviaremos las instrucciones para restablecer su contrseña.',
+  forgotPasswordInstructions:
+    'Por favor ingrese su dirección de correo. Le enviaremos las instrucciones para restablecer su contraseña.',
   forgotPasswordSubmitLabel: 'Enviar email',
   invalidErrorHint: 'Inválido',
   lastLoginInstructions: 'La última vez inició sesión con',
@@ -76,10 +85,12 @@ export default {
     specialCharacters: 'Caracteres especiales (ej. !@#$%^&*)',
     upperCase: 'Letras mayúsculas (A-Z)'
   },
-  passwordlessEmailAlternativeInstructions: 'También puede ingresar su email<br/>para iniciar sesión o registrarse',
+  passwordlessEmailAlternativeInstructions:
+    'También puede ingresar su email<br/>para iniciar sesión o registrarse',
   passwordlessEmailCodeInstructions: 'Se ha enviado un correo con el código a %s.',
   passwordlessEmailInstructions: 'Ingrese su email para iniciar sesión<br/>o registrarse',
-  passwordlessSMSAlternativeInstructions: 'También puede ingresar su teléfono<br/>para iniciar sesión o registrarse',
+  passwordlessSMSAlternativeInstructions:
+    'También puede ingresar su teléfono<br/>para iniciar sesión o registrarse',
   passwordlessSMSCodeInstructions: 'Se ha enviado un SMS con el código<br/>a %s.',
   passwordlessSMSInstructions: 'Ingrese su teléfono para iniciar sesión<br/>o registrarse',
   phoneNumberInputPlaceholder: 'número de teléfono',
@@ -88,17 +99,17 @@ export default {
   resendingLabel: 'Reenviando...',
   retryLabel: 'Reintentar',
   sentLabel: 'Enviado!',
-  signupTitle: 'Registrarse',
+  signUpTitle: 'Registrarse',
   signUpLabel: 'Registrarse',
   signUpSubmitLabel: 'Registrarse',
-  signUpTerms: '',
   signUpWithLabel: 'Registrarse con %s',
   socialLoginInstructions: '',
   socialSignUpInstructions: '',
   ssoEnabled: 'Inicio de sesión único activado',
   submitLabel: 'Enviar',
-  unrecoverableError: 'Ocurrió un error.<br />Por favor, contacte a soporte técnico.',
-  usernameFormatErrorHint: '%d-%d letras, números y "_"',
+  unrecoverableError: 'Ocurrió un error.<br />Por favor, contacte a nuestro soporte técnico.',
+  usernameFormatErrorHint:
+    'Use %d-%d letras, números y los siguientes caracteres: "_", ".", "+", "-"',
   usernameInputPlaceholder: 'su usuario',
   usernameOrEmailInputPlaceholder: 'usuario/correo electrónico',
   title: 'Auth0',
@@ -107,8 +118,10 @@ export default {
   windowsAuthLabel: 'Autenticación de Windows',
   mfaInputPlaceholder: 'Código',
   mfaLoginTitle: 'Segundo Factor',
-  mfaLoginInstructions: 'Por favor ingrese el código de verificación generado por su aplicación móvil.',
+  mfaLoginInstructions:
+    'Por favor ingrese el código de verificación generado por su aplicación móvil.',
   mfaSubmitLabel: 'Enviar',
   mfaCodeErrorHint: '%d números',
-  showPassword: 'Mostrar contraseña'
+  showPassword: 'Mostrar contraseña',
+  signUpTerms: 'Al suscribirse usted acepta nuestros términos de servicio y política de privacidad.'
 };

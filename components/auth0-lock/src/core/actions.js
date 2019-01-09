@@ -85,10 +85,11 @@ export function openLock(id, opts) {
   }
 
   if (opts.flashMessage) {
-    if (!opts.flashMessage.type || ['error', 'success'].indexOf(opts.flashMessage.type) === -1) {
+    const supportedTypes = ['error', 'success', 'info'];
+    if (!opts.flashMessage.type || supportedTypes.indexOf(opts.flashMessage.type) === -1) {
       return l.emitUnrecoverableErrorEvent(
         m,
-        "'flashMessage' must provide a valid type ['error','success']"
+        "'flashMessage' must provide a valid type ['error','success','info']"
       );
     }
     if (!opts.flashMessage.text) {
@@ -194,6 +195,17 @@ export function logIn(
   });
 }
 
+export function checkSession(id, params = {}) {
+  const m = read(getEntity, 'lock', id);
+  swap(updateEntity, 'lock', id, m => l.setSubmitting(m, true));
+  webApi.checkSession(id, params, (err, result) => {
+    if (err) {
+      return logInError(id, [], err);
+    }
+    return logInSuccess(id, result);
+  });
+}
+
 export function logInSuccess(id, result) {
   const m = read(getEntity, 'lock', id);
 
@@ -208,7 +220,7 @@ export function logInSuccess(id, result) {
   }
 }
 
-function logInError(id, fields, error, localHandler) {
+function logInError(id, fields, error, localHandler = (_id, _error, _fields, next) => next()) {
   const errorCode = error.error || error.code;
   localHandler(id, error, fields, () =>
     setTimeout(() => {

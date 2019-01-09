@@ -36,13 +36,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       #controls {
         color: #fff;
-        @apply(--layout-vertical);
-        @apply(--layout-center-center);
+        @apply --layout-vertical;
+        @apply --layout-center-center;
         height: 30%;
       }
 
       #controls > div {
-        @apply(--layout-horizontal);
+        @apply --layout-horizontal;
         padding-bottom: 1em;
       }
 
@@ -94,28 +94,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       is: 'video-viewer',
 
       properties: {
-        route: {
-          type: Object,
-          notify: true
-        },
+        route: {type: Object, notify: true},
 
-        data: {
-          type: Object
-        },
+        data: {type: Object},
 
-        playing: {
-          type: Boolean
-        },
+        playing: {type: Boolean},
 
-        queryParams: {
-          type: Object
-        }
+        queryParams: {type: Object}
       },
 
-      observers: [
-        '_playingChanged(playing)',
-        '_stateChanged(queryParams.state)'
-      ],
+      observers: ['_playingChanged(playing)', '_stateChanged(queryParams.state)'],
 
       pause: function() {
         this.set('queryParams.state', 'paused');

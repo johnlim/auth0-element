@@ -1,57 +1,77 @@
-var random = require('../helper/random');
-var storage = require('../helper/storage');
+import random from '../helper/random';
+import Storage from '../helper/storage';
+import * as times from '../helper/times';
 
 var DEFAULT_NAMESPACE = 'com.auth0.auth.';
 
 function TransactionManager(options) {
-  options = options || {};
-  this.namespace = options.namespace || DEFAULT_NAMESPACE;
-  this.keyLength = options.keyLength || 32;
+  var transaction = options.transaction || {};
+  this.namespace = transaction.namespace || DEFAULT_NAMESPACE;
+  this.keyLength = transaction.keyLength || 32;
+  this.storage = new Storage(options);
 }
 
 TransactionManager.prototype.process = function(options) {
-  var transaction;
+  if (!options.responseType) {
+    throw new Error('responseType is required');
+  }
+  var lastUsedConnection = options.realm || options.connection;
+  var responseTypeIncludesIdToken = options.responseType.indexOf('id_token') !== -1;
 
-  if (options.responseType.indexOf('code') !== -1) {
-    return options;
+  var transaction = this.generateTransaction(
+    options.appState,
+    options.state,
+    options.nonce,
+    lastUsedConnection,
+    responseTypeIncludesIdToken
+  );
+  if (!options.state) {
+    options.state = transaction.state;
   }
 
-  if (options.responseType.indexOf('id_token') !== -1 && !!options.nonce) {
-    return options;
-  }
-
-  transaction = this.generateTransaction(options.appState, options.state, options.nonce);
-
-  options.state = transaction.state;
-
-  if (options.responseType.indexOf('id_token') !== -1) {
+  if (responseTypeIncludesIdToken && !options.nonce) {
     options.nonce = transaction.nonce;
   }
 
   return options;
 };
 
-TransactionManager.prototype.generateTransaction = function(appState, state, nonce) {
-  var transaction = state || random.randomString(this.keyLength);
-  nonce = nonce || random.randomString(this.keyLength);
+TransactionManager.prototype.generateTransaction = function(
+  appState,
+  state,
+  nonce,
+  lastUsedConnection,
+  generateNonce
+) {
+  state = state || random.randomString(this.keyLength);
+  nonce = nonce || (generateNonce ? random.randomString(this.keyLength) : null);
 
-  storage.setItem(this.namespace + transaction, {
-    nonce: nonce,
-    appState: appState
-  });
-
+  this.storage.setItem(
+    this.namespace + state,
+    {
+      nonce: nonce,
+      appState: appState,
+      state: state,
+      lastUsedConnection: lastUsedConnection
+    },
+    { expires: times.MINUTES_30 }
+  );
   return {
-    state: transaction,
+    state: state,
     nonce: nonce
   };
 };
 
-TransactionManager.prototype.getStoredTransaction = function(transaction) {
+TransactionManager.prototype.getStoredTransaction = function(state) {
   var transactionData;
 
-  transactionData = storage.getItem(this.namespace + transaction);
-  storage.removeItem(this.namespace + transaction);
+  transactionData = this.storage.getItem(this.namespace + state);
+  this.clearTransaction(state);
   return transactionData;
 };
 
-module.exports = TransactionManager;
+TransactionManager.prototype.clearTransaction = function(state) {
+  this.storage.removeItem(this.namespace + state);
+};
+
+export default TransactionManager;

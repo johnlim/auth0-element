@@ -1,10 +1,10 @@
-<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../polymer/polymer-element.html">
 
 <!--
 `auth0-element`
 An element that makes it easy to declaratively use auth0
 
-@demo demo/index.html 
+@demo demo/index.html
 -->
 
 <dom-module id="auth0-element">
@@ -18,17 +18,17 @@ An element that makes it easy to declaratively use auth0
   </template>
 
   <script>
-    Polymer({
-
-      is: 'auth0-element',
-
-      properties: {
-        prop1: {
-          type: String,
-          value: 'auth0-element',
-        },
-      },
-
-    });
+    class Auth0Element extends Polymer.Element {
+      static get is() {return 'auth0-element'}
+      static get properties() {
+        return {
+          prop1: {
+            type: String,
+            value: 'auth0-element'
+          }
+        }
+      }
+    };
+    customElements.define(Auth0Element.is, Auth0Element);
   </script>
 </dom-module>

@@ -11,7 +11,9 @@
   <template>
     <style>
       :host {
-        display: block;
+        display: flex;
+        justify-content: flex-start;
+        align-items: stretch;
       }
     </style>
 
@@ -24,7 +26,7 @@
             client-id="LP1BxaYQm2NQTZG64MQqHmI2xxDiRMaf"
             domain="johnlim.au.auth0.com"
             options="{{auth0Options}}"
-            logout-redirect-to="{{auth0Options.redirectUri}}"
+            logout-redirect-to="{{logoutRedirectUri}}"
             user-profile={{user}}
             id-token="{{idToken}}"
             query-params="{{params}}"
@@ -90,8 +92,11 @@
           value: function () {
             return {
               auth: {
+                params: {
+                  scope: 'openid email', //lock options
+                },
                 scope: 'openid email',
-                redirectUri: window.location.origin + '/auth0-element/components/auth0-element/demo/',
+                redirectUri: window.location.href,
                 responseType: 'token',
                 connection: 'Username-Password-Authentication',
 
@@ -106,6 +111,9 @@
         },
         params: {
           type: Object
+        },
+        logoutRedirectUri: {
+            value: window.location.href
         }
       },
       signIntoFirebase: function(token) {

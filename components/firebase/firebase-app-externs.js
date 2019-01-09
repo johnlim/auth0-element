@@ -1,10 +1,21 @@
-/*! @license Firebase v3.9.0
-Build: rev-cc77c9e
-Terms: https://firebase.google.com/terms/ */
-
+/**
+ * @license Copyright 2017 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 /**
  * @fileoverview Firebase namespace and Firebase App API.
- * Version: 3.9.0
+ * Version: ${JSCORE_VERSION}
  *
  * Copyright 2017 Google Inc. All Rights Reserved.
  *
@@ -144,7 +155,6 @@ firebase.app.App.prototype.name;
  *
  * @example
  * var app = firebase.initializeApp(config);
- * console.log(app.options.credential === config.credential);  // true
  * console.log(app.options.databaseURL === config.databaseURL);  // true
  *
  * @type {!Object}
@@ -223,6 +233,7 @@ firebase.Promise = function(resolver) {};
  * @param {(function(!Error): *)=} onReject Called when the Promise is rejected
  *   (with an error).
  * @return {!firebase.Promise<*>}
+ * @override
  */
 firebase.Promise.prototype.then = function(onResolve, onReject) {};
 
@@ -231,6 +242,7 @@ firebase.Promise.prototype.then = function(onResolve, onReject) {};
  *
  * @param {(function(!Error): *)=} onReject Called when the Promise is rejected
  *   (with an error).
+ * @override
  */
 firebase.Promise.prototype.catch = function(onReject) {};
 
@@ -263,3 +275,27 @@ firebase.Promise.reject = function(error) {};
  * @return {!firebase.Promise<!Array<*>>}
  */
 firebase.Promise.all = function(values) {};
+
+/**
+ * @template V, E
+ * @interface
+ **/
+firebase.Observer = function() {};
+
+/**
+ * @param {?V} value
+ */
+firebase.Observer.prototype.next = function(value) {};
+
+/**
+ * @param {!E} error
+ */
+firebase.Observer.prototype.error = function(error) {};
+
+firebase.Observer.prototype.complete = function() {};
+
+/** @typedef {function(): void} */
+firebase.CompleteFn;
+
+/** @typedef {function(): void} */
+firebase.Unsubscribe;

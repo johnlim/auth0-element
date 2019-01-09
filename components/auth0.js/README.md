@@ -8,32 +8,33 @@
 [![License][license-image]][license-url]
 [![Downloads][downloads-image]][downloads-url]
 
-Client Side Javascript toolkit for Auth0 API
+Client Side Javascript toolkit for Auth0 API.
 
-> We recommend using auth0.js v8 if you need to use [API Auth](https://auth0.com/docs/api-auth) features. For auth0.js v7 code please check the [v7 branch](https://github.com/auth0/auth0.js/tree/v7), this version will be supported and maintained alongside v8.
+If you want to read the full API documentation of auth0.js, see [here](https://auth0.github.io/auth0.js/index.html).
 
-Need help migrating from v7? Please check our [Migration Guide](https://auth0.com/docs/libraries/auth0js/v8/migration-guide)
+## Index
+
+1. [Install](#install)
+2. [auth0.WebAuth](#auth0webauth)
+3. [auth0.Authentication](#auth0authentication)
+4. [auth0.Management](#auth0management)
+5. [Documentation](#documentation)
+6. [Migration](#migration)
+7. [Develop](#develop)
+8. [Issue Reporting](#issue-reporting)
+9. [Author](#author)
+10. [License](#license)
 
 ## Install
 
-From CDN
+From CDN:
 
 ```html
-<!-- Latest patch release (recommended for production) -->
-<script src="http://cdn.auth0.com/js/auth0/8.8.0/auth0.min.js"></script>
+<!-- Latest patch release -->
+<script src="https://cdn.auth0.com/js/auth0/9.8.2/auth0.min.js"></script>
 ```
 
-From [bower](http://bower.io)
-
-```sh
-bower install auth0-lock
-```
-
-```html
-<script src="bower_components/auth0.js/build/auth0.min.js"></script>
-```
-
-From [npm](https://npmjs.org)
+From [npm](https://npmjs.org):
 
 ```sh
 npm install auth0-js
@@ -43,7 +44,7 @@ After installing the `auth0-js` module, you'll need bundle it up along with all 
 
 ## auth0.WebAuth
 
-Provides support for all the authentication flows
+Provides support for all the authentication flows.
 
 ### Initialize
 
@@ -56,18 +57,18 @@ var auth0 = new auth0.WebAuth({
 
 Parameters:
 - **domain {REQUIRED, string}**: Your Auth0 account domain such as `'example.auth0.com'` or `'example.eu.auth0.com'`.
-- **clientID {REQUIRED, string}**: Your Auth0 client ID.
-- **redirectUri {OPTIONAL, string}**: The URL where Auth0 will call back to with the result of a successful or failed authentication. It must be whitelisted in the "Allowed Callback URLs" in your Auth0 client's settings.
+- **clientID {REQUIRED, string}**: The Client ID found on your Application settings page.
+- **redirectUri {OPTIONAL, string}**: The URL where Auth0 will call back to with the result of a successful or failed authentication. It must be whitelisted in the "Allowed Callback URLs" in your Auth0 Application's settings.
 - **scope {OPTIONAL, string}**: The default scope used for all authorization requests.
 - **audience {OPTIONAL, string}**: The default audience, used if requesting access to an API.
-- **responseType {OPTIONAL, string}**: Response type for all authentication requests. Defaults to `'token'`. Valid values are `'token'`, `'id_token'` and `'token id_token'`.
-- **responseMode {OPTIONAL, string}**: The default responseMode used, defaults to `'fragment'`. The `parseHash` method can be used to parse authentication responses using fragment response mode.
-- **_disableDeprecationWarnings {OPTIONAL, boolean}**: Disables the deprecation warnings, defaults to `false`.
+- **responseType {OPTIONAL, string}**: Response type for all authentication requests. It can be any space separated list of the values `code`, `token`, `id_token`. **If you don't provide a global `responseType`, you will have to provide a `responseType` for each method that you use**.
+- **responseMode {OPTIONAL, string}**: The default responseMode used, defaults to `'fragment'`. The `parseHash` method can be used to parse authentication responses using fragment response mode. Supported values are `query`, `fragment` and `form_post`. The `query` value is only supported when `responseType` is `code`.
+- **_disableDeprecationWarnings {OPTIONAL, boolean}**: Indicates if deprecation warnings should be output to the browser console, defaults to `false`.
 
 ### API
 
 - **authorize(options)**: Redirects to the `/authorize` endpoint to start an authentication/authorization transaction.
-Auth0 will call back to your application with the results at the specified `redirectUri`.
+Auth0 will call back to your application with the results at the specified `redirectUri`. **The default scope for this method is `openid profile email`**.
 
 ```js
 auth0.authorize({
@@ -83,7 +84,7 @@ auth0.authorize({
 > This method requires that your tokens are signed with **RS256**. Please check our [Migration Guide](https://auth0.com/docs/libraries/auth0js/v8/migration-guide#switching-from-hs256-to-rs256) for more information.
 
 ```js
-auth0.parseHash(window.location.hash, function(err, authResult) {
+auth0.parseHash({ hash: window.location.hash }, function(err, authResult) {
   if (err) {
     return console.log(err);
   }
@@ -100,57 +101,25 @@ auth0.parseHash(window.location.hash, function(err, authResult) {
 });
 ```
 
-- **renewAuth(options, callback)**: Attempts to get a new token from Auth0 by using [silent authentication](https://auth0.com/docs/api-auth/tutorials/silent-authentication), or invokes `callback` with an error if the user does not have an active SSO session at your Auth0 domain.
-
-This method can be used to detect a locally unauthenticated user's SSO session status, or to renew an authenticated user's access token.
-The actual redirect to `/authorize` happens inside an iframe, so it will not reload your application or redirect away from it.
+- **checkSession(options, callback)**: Allows you to acquire a new token from Auth0 for a user who already has an SSO session established against Auth0 for your domain. If the user is not authenticated, the authentication result will be empty and you'll receive an error like this: `{error: 'login_required'}`.The method accepts any valid OAuth2 parameters that would normally be sent to `/authorize`.
+Everything happens inside an iframe, so it will not reload your application or redirect away from it.
 
 ```js
-auth0.renewAuth({
+auth0.checkSession({
   audience: 'https://mystore.com/api/v2',
-  scope: 'read:order write:order',
-  redirectUri: 'https://example.com/auth/silent-callback',
-
-  // this will use postMessage to comunicate between the silent callback
-  // and the SPA. When false the SDK will attempt to parse the url hash
-  // should ignore the url hash and no extra behaviour is needed.
-  usePostMessage: true
+  scope: 'read:order write:order'
   }, function (err, authResult) {
-    // Renewed tokens or error
+    // Authentication tokens or error
 });
 ```
 
 The contents of `authResult` are identical to those returned by `parseHash()`.
-For this request to succeed, the user must have an active SSO session at Auth0 by having logged in through the [hosted login page](https://manage.auth0.com/#/login_page) of your Auth0 domain.
 
-> ***Important:*** this will use postMessage to communicate between the silent callback and the SPA. When false the SDK will attempt to parse the url hash should ignore the url hash and no extra behaviour is needed.
+> **Important:** If you're not using the hosted login page to do social logins, you have to use your own [social connection keys](https://manage.auth0.com/#/connections/social). If you use Auth0's dev keys, you'll always get `login_required` as an error when calling `checkSession`.
 
-> **Also important:** If you're not using the hosted login page to do social logins, you have to use your own [social connection keys](https://manage.auth0.com/#/connections/social). If you use Auth0's dev keys, you'll always get `login_required` as an error when calling `renewAuth`.
+> **Important:** Because there is no redirect in this method, `responseType: 'code'` is not supported and will throw an error.
 
-It is strongly recommended to have a dedicated callback page for silent authentication in order to avoid loading your entire application again inside an iframe.
-This callback page should only parse the URL hash and post it to the parent document so that your application can take action depending on the outcome of the silent authentication attempt.
-For example:
-
-```js
-<!DOCTYPE html>
-<html>
-  <head>
-    <script src="/auth0.js"></script>
-    <script type="text/javascript">
-      var auth0 = new auth0.WebAuth({
-        domain: '{YOUR_AUTH0_DOMAIN}',
-        clientID: '{YOUR_AUTH0_CLIENT_ID}'
-      });
-      auth0.parseHash(window.location.hash, function (err, result) {
-        parent.postMessage(err || result, 'https://example.com/');
-      });
-    </script>
-  </head>
-  <body></body>
-</html>
-```
-
-Remember to add the URL of the silent authentication callback page to the "Allowed Callback URLs" list of your Auth0 client.
+Remember to add the URL where the authorization request originates from to the Allowed Web Origins list of your Auth0 Application in the [Dashboard](https://manage.auth0.com/) under your Applications's **Settings**.
 
 - **client.login(options, callback)**: Authenticates a user with username and password in a realm using `/oauth/token`. This will not initialize a SSO session at Auth0, hence can not be used along with silent authentication.
 
@@ -186,36 +155,43 @@ var auth0 = new auth0.Authentication({
 - **buildAuthorizeUrl(options)**: Builds and returns the `/authorize` url in order to initialize a new authN/authZ transaction. https://auth0.com/docs/api/authentication#database-ad-ldap-passive-
 - **buildLogoutUrl(options)**: Builds and returns the Logout url in order to initialize a new authN/authZ transaction. https://auth0.com/docs/api/authentication#logout
 - **loginWithDefaultDirectory(options, cb)**: Makes a call to the `oauth/token` endpoint with `password` grant type. https://auth0.com/docs/api-auth/grant/password
-- **login(options, cb)**: Makes a call to the `oauth/token` endpoint with `http://auth0.com/oauth/grant-type/password-realm` grant type.
+- **login(options, cb)**: Makes a call to the `oauth/token` endpoint with `https://auth0.com/oauth/grant-type/password-realm` grant type.
 - **oauthToken(options, cb)**: Makes a call to the `oauth/token` endpoint.
 - **userInfo(token, cb)**: Makes a call to the `/userinfo` endpoint and returns the user profile.
 
 ## auth0.Management
 
-Provides an API Client for the Auth0 Management API (only methods meant to be used from the client with the user token).
+Provides an API Client for the Auth0 Management API (only methods meant to be used from the client with the user token). You should use an access_token with the `https://YOUR_DOMAIN.auth0.com/api/v2/` audience to make this work. For more information, read [the user management section of the Auth0.js documentation](https://auth0.com/docs/libraries/auth0js/v9#user-management).
 
 ### Initialize
 
 ```js
 var auth0 = new auth0.Management({
   domain: "{YOUR_AUTH0_DOMAIN}",
-  token: "{YOUR_AUTH0_API_TOKEN}"
+  token: "{ACCESS_TOKEN_FROM_THE_USER}"
 });
 ```
 
 ### API
 
 - **getUser(userId, cb)**: Returns the user profile. https://auth0.com/docs/api/management/v2#!/Users/get_users_by_id
-- **patchUserMetadata(userId, userMetadata, cb)**: Updates the user metdata. It will patch the user metdata with the attributes sent. https://auth0.com/docs/api/management/v2#!/Users/patch_users_by_id
+- **patchUserMetadata(userId, userMetadata, cb)**: Updates the user metadata. It will patch the user metadata with the attributes sent. https://auth0.com/docs/api/management/v2#!/Users/patch_users_by_id
 - **linkUser(userId, secondaryUserToken, cb)**: Link two users. https://auth0.com/docs/api/management/v2#!/Users/post_identities
 
 ## Documentation
 
-For a complete reference and examples please check our [docs](https://auth0.com/docs/libraries/auth0js) and our [Migration Guide](https://auth0.com/docs/libraries/auth0js/v8/migration-guide) if you need help to migrate from v7
+
+For a complete reference and examples please check our [docs](https://auth0.com/docs/libraries/auth0js).
+
+## Migration
+
+If you need help migrating to v9, please refer to the [v9 Migration Guide](https://auth0.com/docs/libraries/auth0js/v9/migration-guide).
+
+If you need help migrating to v8, please refer to the [v8 Migration Guide](https://auth0.com/docs/libraries/auth0js/v8/migration-guide).
 
 ## Develop
 
-Run `npm start` and point your browser to `https://localhost:3000/example` to run the example page.
+Run `npm start` and point your browser to [`https://localhost:3000/example`](https://localhost:3000/example) to run the example page.
 
 Run `npm run test` to run the test suite.
 
@@ -233,21 +209,21 @@ For auth0 related questions/support please use the [Support Center](https://supp
 
 ## Author
 
-[Auth0](auth0.com)
+[Auth0](https://auth0.com)
 
 ## License
 
-This project is licensed under the MIT license. See the [LICENSE](LICENSE.txt) file for more info.
+This project is licensed under the MIT license. See the [LICENSE](LICENSE) file for more info.
 
 <!-- Vaaaaarrrrsss -->
 
 [npm-image]: https://img.shields.io/npm/v/auth0-js.svg?style=flat-square
 [npm-url]: https://npmjs.org/package/auth0-js
-[circleci-image]: http://img.shields.io/circleci/project/github/auth0/auth0.js.svg?branch=master&style=flat-square
+[circleci-image]: https://img.shields.io/circleci/project/github/auth0/auth0.js.svg?branch=master&style=flat-square
 [circleci-url]: https://circleci.com/gh/auth0/auth0.js
-[codecov-image]: https://img.shields.io/codecov/c/github/auth0/auth0.js/v8.svg?style=flat-square
-[codecov-url]: https://codecov.io/github/auth0/auth0.js?branch=v8
-[license-image]: http://img.shields.io/npm/l/auth0-js.svg?style=flat-square
+[codecov-image]: https://img.shields.io/codecov/c/github/auth0/auth0.js/master.svg?style=flat-square
+[codecov-url]: https://codecov.io/github/auth0/auth0.js?branch=master
+[license-image]: https://img.shields.io/npm/l/auth0-js.svg?style=flat-square
 [license-url]: #license
-[downloads-image]: http://img.shields.io/npm/dm/auth0-js.svg?style=flat-square
+[downloads-image]: https://img.shields.io/npm/dm/auth0-js.svg?style=flat-square
 [downloads-url]: https://npmjs.org/package/auth0-js

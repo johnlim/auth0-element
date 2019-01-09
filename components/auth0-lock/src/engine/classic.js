@@ -14,9 +14,11 @@ import {
   hasInitialScreen,
   hasScreen,
   initDatabase,
-  overrideDatabaseOptions
+  overrideDatabaseOptions,
+  resolveAdditionalSignUpFields
 } from '../connection/database/index';
 import {
+  isADEnabled,
   defaultEnterpriseConnection,
   defaultEnterpriseConnectionName,
   initEnterprise,
@@ -34,7 +36,7 @@ import KerberosScreen from '../connection/enterprise/kerberos_screen';
 import HRDScreen from '../connection/enterprise/hrd_screen';
 import EnterpriseQuickAuthScreen from '../connection/enterprise/quick_auth_screen';
 import { hasSkippedQuickAuth } from '../quick_auth';
-import { lastUsedConnection } from '../core/sso/index';
+import * as sso from '../core/sso/index';
 import LoadingScreen from '../core/loading_screen';
 import ErrorScreen from '../core/error_screen';
 import LastLoginScreen from '../core/sso/last_login_screen';
@@ -42,8 +44,8 @@ import { hasError, isDone, isSuccess } from '../sync';
 import { getFieldValue } from '../field/index';
 import { swap, updateEntity } from '../store/index';
 
-export function isSSOEnabled(m) {
-  return matchesEnterpriseConnection(m, databaseUsernameValue(m));
+export function isSSOEnabled(m, options) {
+  return matchesEnterpriseConnection(m, databaseUsernameValue(m, options));
 }
 
 export function matchesEnterpriseConnection(m, usernameValue) {
@@ -94,14 +96,18 @@ function validateAllowedConnections(m) {
   if (defaultDatabaseConnectionName(m) && !defaultDatabaseConnection(m)) {
     l.warn(
       m,
-      `The provided default database connection "${defaultDatabaseConnectionName(m)}" is not enabled.`
+      `The provided default database connection "${defaultDatabaseConnectionName(
+        m
+      )}" is not enabled.`
     );
   }
 
   if (defaultEnterpriseConnectionName(m) && !defaultEnterpriseConnection(m)) {
     l.warn(
       m,
-      `The provided default enterprise connection "${defaultEnterpriseConnectionName(m)}" is not enabled or does not allow email/password authentication.`
+      `The provided default enterprise connection "${defaultEnterpriseConnectionName(
+        m
+      )}" is not enabled or does not allow email/password authentication.`
     );
   }
 
@@ -147,6 +153,7 @@ class Classic {
 
   willShow(m, opts) {
     m = overrideDatabaseOptions(m, opts);
+    m = resolveAdditionalSignUpFields(m);
     if (isSuccess(m, 'client')) {
       m = validateAllowedConnections(m);
     }
@@ -172,11 +179,15 @@ class Classic {
         }
 
         if (l.ui.rememberLastLogin(m)) {
-          const conn = lastUsedConnection(m);
-          if (conn && isSuccess(m, 'sso')) {
-            if (l.hasConnection(m, conn.get('name'))) {
-              return new LastLoginScreen();
-            }
+          const lastUsedConnection = sso.lastUsedConnection(m);
+          const lastUsedUsername = sso.lastUsedUsername(m);
+          if (
+            lastUsedConnection &&
+            isSuccess(m, 'sso') &&
+            l.hasConnection(m, lastUsedConnection.get('name')) &&
+            l.findConnection(m, lastUsedConnection.get('name')).get('type') !== 'passwordless'
+          ) {
+            return new LastLoginScreen();
           }
         }
       }

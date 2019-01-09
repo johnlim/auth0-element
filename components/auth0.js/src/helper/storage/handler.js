@@ -1,11 +1,25 @@
-var windowHandler = require('../window');
-var DummyStorage = require('./dummy');
-var CookieStorage = require('./cookie');
-var Warn = require('../warn');
+import windowHandler from '../window';
+import DummyStorage from './dummy';
+import CookieStorage from './cookie';
+import Warn from '../warn';
 
-function StorageHandler() {
+function StorageHandler(options) {
   this.warn = new Warn({});
-  this.storage = windowHandler.getWindow().localStorage || new CookieStorage();
+  this.storage = new CookieStorage();
+  if (options.__tryLocalStorageFirst !== true) {
+    return;
+  }
+  try {
+    // some browsers throw an error when trying to access localStorage
+    // when localStorage is disabled.
+    var localStorage = windowHandler.getWindow().localStorage;
+    if (localStorage) {
+      this.storage = localStorage;
+    }
+  } catch (e) {
+    this.warn.warning(e);
+    this.warn.warning("Can't use localStorage. Using CookieStorage instead.");
+  }
 }
 
 StorageHandler.prototype.failover = function() {
@@ -41,14 +55,14 @@ StorageHandler.prototype.removeItem = function(key) {
   }
 };
 
-StorageHandler.prototype.setItem = function(key, value) {
+StorageHandler.prototype.setItem = function(key, value, options) {
   try {
-    return this.storage.setItem(key, value);
+    return this.storage.setItem(key, value, options);
   } catch (e) {
     this.warn.warning(e);
     this.failover();
-    return this.setItem(key, value);
+    return this.setItem(key, value, options);
   }
 };
 
-module.exports = StorageHandler;
+export default StorageHandler;

@@ -12,10 +12,13 @@ jest.mock('connection/enterprise/single_sign_on_notice', () =>
   mockComponent('single_sign_on_notice')
 );
 
-const getComponent = () => {
+const getScreen = () => {
   const SignUpScreen = require('engine/classic/sign_up_screen').default;
-  const screen = new SignUpScreen();
-  return screen.render();
+  return new SignUpScreen();
+};
+
+const getComponent = () => {
+  return getScreen().render();
 };
 
 describe('SignUpScreen', () => {
@@ -23,9 +26,14 @@ describe('SignUpScreen', () => {
     jest.resetModules();
 
     jest.mock('connection/database/index', () => ({
+      databaseUsernameValue: (model, options) => {
+        expect(options.emailFirst).toBe(true);
+        return 'foo@bar.com';
+      },
       termsAccepted: () => true,
       hasScreen: () => false,
-      mustAcceptTerms: () => false
+      mustAcceptTerms: () => false,
+      showTerms: () => true
     }));
 
     jest.mock('connection/database/actions', () => ({
@@ -34,7 +42,10 @@ describe('SignUpScreen', () => {
     }));
     jest.mock('engine/classic', () => ({
       hasOnlyClassicConnections: () => false,
-      isSSOEnabled: () => false,
+      isSSOEnabled: (model, options) => {
+        expect(options.emailFirst).toBe(true);
+        return false;
+      },
       useBigSocialButtons: () => false
     }));
     jest.mock('core/signed_in_confirmation', () => ({
@@ -46,6 +57,10 @@ describe('SignUpScreen', () => {
 
     jest.mock('field/index', () => ({
       renderOptionSelection: () => false
+    }));
+
+    jest.mock('connection/enterprise', () => ({
+      isHRDDomain: () => false
     }));
 
     jest.mock('connection/enterprise/actions', () => ({
@@ -112,5 +127,43 @@ describe('SignUpScreen', () => {
 
       expectComponent(<Component {...defaultProps} />).toMatchSnapshot();
     });
+  });
+  describe('on Submit, uses `options.emailFirst=true` and', () => {
+    it('calls signup', () => {
+      const screen = getScreen();
+      screen.submitHandler()();
+      const { mock } = require('connection/database/actions').signUp;
+      expect(mock.calls.length).toBe(1);
+    });
+  });
+  describe('renders SignupTerms', () => {
+    it('when showTerms() && `terms` are truthy', () => {
+      const screen = getScreen();
+      const terms = screen.renderTerms('m', true);
+      expect(terms).not.toBe(null);
+    });
+    it('with a checkbox when mustAcceptTerms() is true', () => {
+      require('connection/database/index').mustAcceptTerms = () => true;
+      const screen = getScreen();
+      const terms = screen.renderTerms('m', true);
+      expect(terms.props.showCheckbox).toBe(true);
+    });
+    it('without a checkbox when mustAcceptTerms() is true', () => {
+      require('connection/database/index').mustAcceptTerms = () => false;
+      const screen = getScreen();
+      const terms = screen.renderTerms('m', true);
+      expect(terms.props.showCheckbox).toBe(false);
+    });
+  });
+  it('do not render SignupTerms when showTerms() is false', () => {
+    require('connection/database/index').showTerms = () => false;
+    const screen = getScreen();
+    const terms = screen.renderTerms('m', true);
+    expect(terms).toBe(null);
+  });
+  it('do not render SignupTerms when `terms` is falsy', () => {
+    const screen = getScreen();
+    const terms = screen.renderTerms('m', undefined);
+    expect(terms).toBe(null);
   });
 });

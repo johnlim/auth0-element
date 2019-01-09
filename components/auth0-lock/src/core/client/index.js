@@ -1,4 +1,6 @@
 import Immutable, { List, Map } from 'immutable';
+import passwordPolicies from 'auth0-password-policies';
+
 import { dataFns } from '../../utils/data_utils';
 // TODO: this module should depend from social stuff
 import { STRATEGIES as SOCIAL_STRATEGIES } from '../../connection/social/index';
@@ -95,10 +97,6 @@ function formatClientConnections(o) {
     const strategy = o.strategies[i];
     const connectionType = strategyNameToConnectionType(strategy.name);
 
-    if (connectionType === 'passwordless') {
-      continue; // disabled until lock supports passwordless connections within the same engine
-    }
-
     const connections = strategy.connections.map(connection => {
       return formatClientConnection(connectionType, strategy.name, connection);
     });
@@ -116,12 +114,17 @@ function formatClientConnection(connectionType, strategyName, connection) {
   };
 
   if (connectionType === 'database') {
-    result.passwordPolicy = connection.passwordPolicy || 'none';
+    result.passwordPolicy = passwordPolicies[connection.passwordPolicy || 'none'];
+    if (
+      connection.password_complexity_options &&
+      connection.password_complexity_options.min_length
+    ) {
+      result.passwordPolicy.length.minLength = connection.password_complexity_options.min_length;
+    }
     result.allowSignup = typeof connection.showSignup === 'boolean' ? connection.showSignup : true;
     result.allowForgot = typeof connection.showForgot === 'boolean' ? connection.showForgot : true;
-    result.requireUsername = typeof connection.requires_username === 'boolean'
-      ? connection.requires_username
-      : false;
+    result.requireUsername =
+      typeof connection.requires_username === 'boolean' ? connection.requires_username : false;
     result.validation = formatConnectionValidation(connection.validation);
   }
 

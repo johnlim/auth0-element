@@ -4,8 +4,11 @@
 export default {
   error: {
     forgotPassword: {
-      too_many_requests: 'Ви досягли граничної кількості запитів на відновлення паролю. Будь ласка, почекайте перед повторною спробою.',
-      'lock.fallback': 'Йой! Виникла непередбачувана помилка. Перепрошуємо.'
+      too_many_requests:
+        'Ви досягли граничної кількості запитів на відновлення паролю. Будь ласка, почекайте перед повторною спробою.',
+      'lock.fallback': 'Йой! Виникла непередбачувана помилка. Перепрошуємо.',
+      enterprise_email:
+        "Your email's domain is part of an Enterprise identity provider. To reset your password, please see your security administrator."
     },
     login: {
       blocked_user: 'Користувач заблокований.',
@@ -14,16 +17,23 @@ export default {
       'lock.invalid_code': 'Невірний код.',
       'lock.invalid_email_password': 'Невірна адреса електронної пошти або пароль.',
       'lock.invalid_username_password': "Невірне ім'я користувача або пароль.",
-      'lock.network': 'Немає доступу до сервера. Будь ласка, перевірте підключення та повторіть спробу',
+      'lock.network':
+        'Немає доступу до сервера. Будь ласка, перевірте підключення та повторіть спробу',
       'lock.popup_closed': 'Спливаюче вікно зачинене, будь ласка, спробуйте ще раз.',
       'lock.unauthorized': 'Недостатньо повноважень. Спробуйте ще раз.',
-      password_change_required: 'Необхідно оновити пароль, тому що ви виконуєте вхід в перший раз або строк дії паролю завершився.',
-      password_leaked: 'Цей обліковий запис був заблокований тому що стався витік вашого паролю на іншому веб-сайті. На вашу електронну поштову скриньку була відправлена інструкція по відновленню вашого облікового запису.',
-      too_many_attempts: 'Ваш обліковий запис був заблокований після декількох послідовних спроб входу до системи.',
-      'lock.mfa_registration_required': 'Вимагається багатофакторна аутентифікація, але пристрій не зареєстрований. Будь ласка, зареєструйте його перед тим як продовжувати.',
+      password_change_required:
+        'Необхідно оновити пароль, тому що ви виконуєте вхід в перший раз або строк дії паролю завершився.',
+      password_leaked:
+        'Цей обліковий запис був заблокований тому що стався витік вашого паролю на іншому веб-сайті. На вашу електронну поштову скриньку була відправлена інструкція по відновленню вашого облікового запису.',
+      too_many_attempts:
+        'Ваш обліковий запис був заблокований після декількох послідовних спроб входу до системи.',
+      'lock.mfa_registration_required':
+        'Вимагається багатофакторна аутентифікація, але пристрій не зареєстрований. Будь ласка, зареєструйте його перед тим як продовжувати.',
       'lock.mfa_invalid_code': 'Невірний код. Будь ласка, спробуйте ще раз.',
-      session_missing: 'Не вдалося виконати запит аутентифікації. Будь ласка, спробуйте ще раз попередньо закривши всі спливаючі вікна.',
-      'hrd.not_matching_email': 'Будь ласка, використовуйте адресу вашої корпоративної пошти для входу.'
+      session_missing:
+        'Не вдалося виконати запит аутентифікації. Будь ласка, спробуйте ще раз попередньо закривши всі спливаючі вікна.',
+      'hrd.not_matching_email':
+        'Будь ласка, використовуйте адресу вашої корпоративної пошти для входу.'
     },
     passwordless: {
       'bad.email': 'Недійсна адреса електронної пошти',
@@ -32,7 +42,8 @@ export default {
     },
     signUp: {
       invalid_password: 'Невірний пароль.',
-      'lock.fallback': 'Сталася непередбачувана помилка при спробі створення облікового запису. Перепрошуємо.',
+      'lock.fallback':
+        'Сталася непередбачувана помилка при спробі створення облікового запису. Перепрошуємо.',
       password_dictionary_error: 'Пароль занадто загальний',
       password_no_user_info_error: 'Пароль ґрунтується на інформації про користувача.',
       password_strength_error: 'Пароль занадто слабкий.',
@@ -53,11 +64,14 @@ export default {
   databaseSignUpInstructions: '',
   databaseAlternativeSignUpInstructions: 'або',
   emailInputPlaceholder: 'marko@vovchok.com',
-  enterpriseLoginIntructions: 'Використовуйте облікові дані вашого корпоративного облікового запису для входу.',
-  enterpriseActiveLoginInstructions: 'Будь ласка, введіть ваші корпоративні облікові дані за посиланням %s.',
+  enterpriseLoginIntructions:
+    'Використовуйте облікові дані вашого корпоративного облікового запису для входу.',
+  enterpriseActiveLoginInstructions:
+    'Будь ласка, введіть ваші корпоративні облікові дані за посиланням %s.',
   failedLabel: 'Не вдалося виконати дію!',
   forgotPasswordAction: "Ви не пам'ятаєте пароль?",
-  forgotPasswordInstructions: 'Будь ласка, введіть адресу вашої електронної скриньки. Ми відправимо вам повідомлення для відновлення паролю.',
+  forgotPasswordInstructions:
+    'Будь ласка, введіть адресу вашої електронної скриньки. Ми відправимо вам повідомлення для відновлення паролю.',
   forgotPasswordSubmitLabel: 'відправити електронною поштою',
   invalidErrorHint: 'Недійсні дані',
   lastLoginInstructions: 'Останнього разу ви увійшли використовуючи',
@@ -78,12 +92,16 @@ export default {
     specialCharacters: 'Спеціальні символи (наприклад !@#$%^&*)',
     upperCase: 'Прописні літери (A-Z)'
   },
-  passwordlessEmailAlternativeInstructions: 'Або введіть адресу електронної пошти для того щоб<br>увійти або зареєструватися',
+  passwordlessEmailAlternativeInstructions:
+    'Або введіть адресу електронної пошти для того щоб<br>увійти або зареєструватися',
   passwordlessEmailCodeInstructions: 'Повідомлення з кодом відправлено на %s.',
-  passwordlessEmailInstructions: 'Введіть адресу електронної пошти для того щоб<br>увійти або зареєструватися',
-  passwordlessSMSAlternativeInstructions: 'Або введіть ваш номер телефону для того щоб<br>увійти або зареєструватися',
+  passwordlessEmailInstructions:
+    'Введіть адресу електронної пошти для того щоб<br>увійти або зареєструватися',
+  passwordlessSMSAlternativeInstructions:
+    'Або введіть ваш номер телефону для того щоб<br>увійти або зареєструватися',
   passwordlessSMSCodeInstructions: 'СМС з кодом було відправлено<br/>на %s.',
-  passwordlessSMSInstructions: 'Введіть ваш номер телефону для того щоб<br>увійти або зареєструватися',
+  passwordlessSMSInstructions:
+    'Введіть ваш номер телефону для того щоб<br>увійти або зареєструватися',
   phoneNumberInputPlaceholder: 'Ваш номер телефону',
   resendCodeAction: 'Не отримали код?',
   resendLabel: 'Відправити повторний запит',
@@ -92,14 +110,15 @@ export default {
   sentLabel: 'Відправлено!',
   signUpLabel: 'Реєстрація',
   signUpSubmitLabel: 'Зареєструватися',
-  signUpTerms: '',
   signUpWithLabel: 'Зареєструватися через %s',
   socialLoginInstructions: '',
   socialSignUpInstructions: '',
   ssoEnabled: 'Єдиний вхід включений',
   submitLabel: 'Відправити',
-  unrecoverableError: 'Йой! Сталася непередбачувана помилка.<br />Будь ласка, зверніться в службу технічної підтримки.',
-  usernameFormatErrorHint: 'Використовуйте %d-%d літер, цифр і "_"',
+  unrecoverableError:
+    'Йой! Сталася непередбачувана помилка.<br />Будь ласка, зверніться в службу технічної підтримки.',
+  usernameFormatErrorHint:
+    'Use %d-%d letters, numbers and the following characters: "_", ".", "+", "-"',
   usernameInputPlaceholder: "Ваше ім'я користувача",
   usernameOrEmailInputPlaceholder: 'електронної пошти/користувача',
   title: 'Auth0',
@@ -107,11 +126,13 @@ export default {
   windowsAuthInstructions: 'Ви підключені через корпоративну мережу&hellip;',
   windowsAuthLabel: 'Аутентифікація Windows',
   forgotPasswordTitle: 'Скинути пароль',
-  signupTitle: 'Зареєструватися',
+  signUpTitle: 'Зареєструватися',
   mfaInputPlaceholder: 'Код',
   mfaLoginTitle: 'Дворівнева перевірка',
-  mfaLoginInstructions: 'Будь ласка, введіть перевірчий код що був згенерований мобільним додатком.',
+  mfaLoginInstructions:
+    'Будь ласка, введіть перевірчий код що був згенерований мобільним додатком.',
   mfaSubmitLabel: 'Авторизуватися',
   mfaCodeErrorHint: 'Використовуйте %d номери',
-  showPassword: 'Show password'
+  showPassword: 'Show password',
+  signUpTerms: 'By signing up, you agree to our terms of service and privacy policy.'
 };

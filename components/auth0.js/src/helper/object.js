@@ -2,8 +2,8 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable guard-for-in */
 
-var assert = require('./assert');
-var objectAssign = require('./object-assign');
+import assert from './assert';
+import objectAssign from './object-assign';
 
 function pick(object, keys) {
   return keys.reduce(function(prev, key) {
@@ -117,12 +117,44 @@ function toCamelCase(object, exceptions) {
   }, {});
 }
 
-module.exports = {
+function getLocationFromUrl(href) {
+  var match = href.match(
+    /^(https?:|file:)\/\/(([^:/?#]*)(?::([0-9]+))?)([/]{0,1}[^?#]*)(\?[^#]*|)(#.*|)$/
+  );
+  return (
+    match && {
+      href: href,
+      protocol: match[1],
+      host: match[2],
+      hostname: match[3],
+      port: match[4],
+      pathname: match[5],
+      search: match[6],
+      hash: match[7]
+    }
+  );
+}
+
+function getOriginFromUrl(url) {
+  if (!url) {
+    return undefined;
+  }
+  var parsed = getLocationFromUrl(url);
+  var origin = parsed.protocol + '//' + parsed.hostname;
+  if (parsed.port) {
+    origin += ':' + parsed.port;
+  }
+  return origin;
+}
+
+export default {
   toSnakeCase: toSnakeCase,
   toCamelCase: toCamelCase,
   blacklist: blacklist,
   merge: merge,
   pick: pick,
   getKeysNotIn: getKeysNotIn,
-  extend: extend
+  extend: extend,
+  getOriginFromUrl: getOriginFromUrl,
+  getLocationFromUrl: getLocationFromUrl
 };

@@ -15,7 +15,7 @@ thing! https://github.com/PolymerLabs/tedium/issues
 [![Build status](https://travis-ci.org/PolymerElements/app-route.svg?branch=master)](https://travis-ci.org/PolymerElements/app-route)
 
 
-##&lt;app-route&gt;
+## &lt;app-route&gt;
 
 `app-route` is an element that enables declarative, self-describing routing
 for a web app.
@@ -89,7 +89,7 @@ the `app-route` will update `route.path`. This in-turn will update the
 
 
 
-##&lt;app-location&gt;
+## &lt;app-location&gt;
 
 `app-location` is an element that provides synchronization between the
 browser location bar and the state of an app. When created, `app-location`
@@ -122,7 +122,7 @@ they automatically reflect back to the global location.
 
 ### Hashes vs Paths
 
-By default `app-location` routes using the pathname portion of the URL. This has
+By default `app-location` routes uses the pathname portion of the URL. This has
 broad browser support but it does require cooperation of the backend server. An
 `app-location` can be configured to use the hash part of a URL instead using
 the `use-hash-as-path` attribute, like so:
@@ -149,7 +149,7 @@ window.dispatchEvent(new CustomEvent('location-changed'));
 
 
 
-##&lt;app-route-converter&gt;
+## &lt;app-route-converter&gt;
 
 `app-route-converter` provides a means to convert a path and query
 parameters into a route object and vice versa. This produced route object
@@ -207,7 +207,7 @@ turn is consumed by the `app-route`.
 
 
 
-##Polymer.AppRouteConverterBehavior
+## Polymer.AppRouteConverterBehavior
 
 Provides bidirectional mapping between `path` and `queryParams` and a
 app-route compatible `route` object.

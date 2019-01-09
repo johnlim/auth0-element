@@ -1,13 +1,15 @@
-var urljoin = require('url-join');
+import urljoin from 'url-join';
 
-var objectHelper = require('../helper/object');
-var RequestBuilder = require('../helper/request-builder');
-var responseHandler = require('../helper/response-handler');
-var windowHelper = require('../helper/window');
+import objectHelper from '../helper/object';
+import RequestBuilder from '../helper/request-builder';
+import responseHandler from '../helper/response-handler';
+import windowHelper from '../helper/window';
+import TransactionManager from './transaction-manager';
 
 function UsernamePassword(options) {
   this.baseOptions = options;
   this.request = new RequestBuilder(options);
+  this.transactionManager = new TransactionManager(this.baseOptions);
 }
 
 UsernamePassword.prototype.login = function(options, cb) {
@@ -31,10 +33,14 @@ UsernamePassword.prototype.login = function(options, cb) {
       'audience'
     ])
     .with(options);
+  body = this.transactionManager.process(body);
 
   body = objectHelper.toSnakeCase(body, ['auth0Client']);
 
-  return this.request.post(url).send(body).end(responseHandler(cb));
+  return this.request
+    .post(url)
+    .send(body)
+    .end(responseHandler(cb));
 };
 
 UsernamePassword.prototype.callback = function(formHtml) {
@@ -49,4 +55,4 @@ UsernamePassword.prototype.callback = function(formHtml) {
   form.submit();
 };
 
-module.exports = UsernamePassword;
+export default UsernamePassword;

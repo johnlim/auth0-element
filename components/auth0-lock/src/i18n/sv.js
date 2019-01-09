@@ -4,8 +4,11 @@
 export default {
   error: {
     forgotPassword: {
-      too_many_requests: 'Du har nått gränsen för maximalt antal försök att ändra ditt lösenord. Vänta och försök sedan igen.',
-      'lock.fallback': 'Något gick fel när vi försökte ändra ditt lösenord.'
+      too_many_requests:
+        'Du har nått gränsen för maximalt antal försök att ändra ditt lösenord. Vänta och försök sedan igen.',
+      'lock.fallback': 'Något gick fel när vi försökte ändra ditt lösenord.',
+      enterprise_email:
+        'Din e-post domän är en del av en företagsidentitetsleverantör. För att återställa ditt lösenord, se din säkerhetsadministratör.'
     },
     login: {
       blocked_user: 'Användaren är spärrad.',
@@ -17,12 +20,16 @@ export default {
       'lock.network': 'Kunde inte kontakta servern. Kontrollera din uppkoppling och försök igen.',
       'lock.popup_closed': 'Popup-fönster stängt. Försök igen.',
       'lock.unauthorized': 'Åtkomst nekad. Försök igen.',
-      password_change_required: 'Du behöver ändra ditt lösenord då detta är första gången du loggar in eller för att ditt lösenord har gått ut.',
-      password_leaked: 'Din konto har blivit spärrat då ditt lösenord har lagts upp på en annan webbsida. Du har fått e-post med instruktioner om hur du låser upp ditt konto.',
+      password_change_required:
+        'Du behöver ändra ditt lösenord då detta är första gången du loggar in eller för att ditt lösenord har gått ut.',
+      password_leaked:
+        'Din konto har blivit spärrat då ditt lösenord har lagts upp på en annan webbsida. Du har fått e-post med instruktioner om hur du låser upp ditt konto.',
       too_many_attempts: 'Ditt konto har blivit spärrat efter flera felaktiga inloggningsförsök.',
-      'lock.mfa_registration_required': 'Multifaktorautentisering krävs men enheten är inte inskrivna. Vänligen registrera det innan vi går vidare.',
+      'lock.mfa_registration_required':
+        'Multifaktorautentisering krävs men enheten är inte inskrivna. Vänligen registrera det innan vi går vidare.',
       'lock.mfa_invalid_code': 'Fel kod. Var god försök igen.',
-      session_missing: 'Det gick inte att slutföra autentiseringsbegäran. Försök igen efter att stänga alla öppna dialoger',
+      session_missing:
+        'Det gick inte att slutföra autentiseringsbegäran. Försök igen efter att stänga alla öppna dialoger',
       'hrd.not_matching_email': 'Använd gärna ditt företags e-post för att logga in.'
     },
     passwordless: {
@@ -57,7 +64,8 @@ export default {
   enterpriseActiveLoginInstructions: 'Ange dina företagsuppgifter för %s.',
   failedLabel: 'Misslyckades!',
   forgotPasswordAction: 'Glömt ditt lösenord?',
-  forgotPasswordInstructions: 'Ange din e-postadress. Vi skickar ett e-postmeddelande med instruktioner för att återställa ditt lösenord.',
+  forgotPasswordInstructions:
+    'Ange din e-postadress. Vi skickar ett e-postmeddelande med instruktioner för att återställa ditt lösenord.',
   forgotPasswordSubmitLabel: 'Skicka e-post',
   invalidErrorHint: 'Ogiltig',
   lastLoginInstructions: 'Senast loggade du in med',
@@ -78,10 +86,12 @@ export default {
     specialCharacters: 'Specialtecken (t.ex. !@#$%^&*)',
     upperCase: 'Versaler (A-Z)'
   },
-  passwordlessEmailAlternativeInstructions: 'Annars, ange din e-postadress för att logga in<br>eller skapa ett konto',
+  passwordlessEmailAlternativeInstructions:
+    'Annars, ange din e-postadress för att logga in<br>eller skapa ett konto',
   passwordlessEmailCodeInstructions: 'Ett e-postmeddelande med koden har skickats till %s.',
   passwordlessEmailInstructions: 'Ange din e-postadress för att logga in<br>eller skapa ett konto',
-  passwordlessSMSAlternativeInstructions: 'Annars, ange ditt telefonnummer för att logga in<br>eller skapa ett konto',
+  passwordlessSMSAlternativeInstructions:
+    'Annars, ange ditt telefonnummer för att logga in<br>eller skapa ett konto',
   passwordlessSMSCodeInstructions: 'Ett SMS med koden har skickats<br>till %s.',
   passwordlessSMSInstructions: 'Ange ditt telefonnummer för att logga in<br>eller skapa ett konto',
   phoneNumberInputPlaceholder: 'ditt telefonnummer',
@@ -92,14 +102,14 @@ export default {
   sentLabel: 'Skickats!',
   signUpLabel: 'Registrera dig',
   signUpSubmitLabel: 'Registrera dig',
-  signUpTerms: '',
   signUpWithLabel: 'Registrera dig med %s',
   socialLoginInstructions: '',
   socialSignUpInstructions: '',
   ssoEnabled: 'Single Sign-On aktiverad',
   submitLabel: 'Skicka',
   unrecoverableError: 'Något gick fel.<br />Vänligen kontakta teknisk support.',
-  usernameFormatErrorHint: 'Använd %d-%d bokstäver, siffror och "_"',
+  usernameFormatErrorHint:
+    'Använd %d-%d bokstäver, siffror och följande tecken: "_", ".", "+", "-"',
   usernameInputPlaceholder: 'ditt användarnamn',
   usernameOrEmailInputPlaceholder: 'användarnamn/e-postadress',
   title: 'Auth0',
@@ -107,11 +117,12 @@ export default {
   windowsAuthInstructions: 'Du är uppkopplad från ditt företagsnätverk&hellip;',
   windowsAuthLabel: 'Windows Authentication',
   forgotPasswordTitle: 'Återställ ditt lösenord',
-  signupTitle: 'Registrera dig',
+  signUpTitle: 'Registrera dig',
   mfaInputPlaceholder: 'Koda',
   mfaLoginTitle: '2 tvåstegsverifiering',
   mfaLoginInstructions: 'Ange verifieringskoden som genereras av din mobil applikation.',
   mfaSubmitLabel: 'Logga in',
   mfaCodeErrorHint: 'Använd %d',
-  showPassword: 'Visa lösenord'
+  showPassword: 'Visa lösenord',
+  signUpTerms: 'Genom att anmäla dig godkänner du våra användarvillkor och integritetspolicy.'
 };

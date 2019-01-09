@@ -14,6 +14,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
   <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
   <script src="../../web-component-tester/browser.js"></script>
+  <script src="../../url/url.js"></script>
 
   <link rel="import" href="../../polymer/polymer.html">
   <link rel="import" href="../../iron-test-helpers/mock-interactions.html">
@@ -43,7 +44,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     function setLocation(url) {
       window.history.pushState({}, '', url);
-      Polymer.Base.fire('location-changed', {}, { node: window });
+      Polymer.Base.fire('location-changed', {}, {node: window});
     }
 
     function assign(a, b) {
@@ -58,7 +59,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       return a;
     }
 
-    suite('<app-location>', function () {
+    suite('<app-location>', function() {
       var initialUrl;
 
       setup(function() {
@@ -107,13 +108,34 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           });
 
           test('it reflects completely replaced queryParams', function() {
-            appLocation.set('route.__queryParams', { bar: 1 });
+            appLocation.set('route.__queryParams', {bar: 1});
             expect(window.location.search).to.be.equal('?bar=1');
           });
 
           test('it reflects the prefix to location.pathname', function() {
             appLocation.set('route.prefix', '/fiz');
             expect(window.location.pathname).to.be.equal('/fiz' + originalPath);
+          });
+        });
+
+        suite('manipulating the Query Params', function() {
+          var originalPath;
+          var originalQueryParams;
+
+          setup(function() {
+            originalPath = appLocation.route.path;
+            originalQueryParams = assign({}, appLocation.route.__queryParams);
+          });
+
+          teardown(function() {
+            appLocation.set('route.prefix', '');
+            appLocation.set('route.path', originalPath);
+            appLocation.set('route.__queryParams', originalQueryParams);
+          });
+
+          test('it can handle special characters', function() {
+            appLocation.set('queryParams.quote', '\'');
+            expect(appLocation.__query.indexOf('quote=%27')).to.not.be.equal(0);
           });
         });
 
@@ -139,9 +161,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
           test('it reflects location.search to route.__queryParams', function() {
             setLocation('?fiz=buz');
-            expect(appLocation.route.__queryParams).to.be.eql({
-              fiz: 'buz'
-            });
+            expect(appLocation.route.__queryParams).to.be.eql({fiz: 'buz'});
           });
         });
       });

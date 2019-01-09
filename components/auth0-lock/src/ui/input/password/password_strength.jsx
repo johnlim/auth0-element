@@ -1,12 +1,12 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import createPolicy from 'password-sheriff';
+import PasswordPolicy from 'password-sheriff/lib/policy';
 import util from 'util';
 
 export default class PasswordStrength extends React.Component {
   render() {
     const { password, policy, messages } = this.props;
-    const analysis = createPolicy(policy).missing(password);
+    const analysis = new PasswordPolicy(policy.toJS()).missing(password);
     // TODO: add a component for fadeIn / fadeOut animations?
     const className =
       'auth0-lock-password-strength animated ' + (!analysis.verified ? 'fadeIn' : 'fadeOut');
@@ -28,14 +28,18 @@ export default class PasswordStrength extends React.Component {
 
     prepareMessage(analysis.rules);
 
-    return <div className={className}><List items={analysis.rules} /></div>;
+    return (
+      <div className={className}>
+        <List items={analysis.rules} />
+      </div>
+    );
   }
 }
 
 PasswordStrength.propTypes = {
   messages: PropTypes.object.isRequired,
   password: PropTypes.string.isRequired,
-  policy: PropTypes.oneOf(['none', 'low', 'fair', 'good', 'excellent']).isRequired
+  policy: PropTypes.object.isRequired
 };
 
 PasswordStrength.defaultProps = {

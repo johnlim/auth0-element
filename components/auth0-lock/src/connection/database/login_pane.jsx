@@ -31,38 +31,50 @@ export default class LoginPane extends React.Component {
     const header = headerText && <p>{headerText}</p>;
 
     // Should never validate format on login because of custom db connection and import mode
-    const fieldPane = usernameStyle === 'email'
-      ? <EmailPane
+    const fieldPane =
+      usernameStyle === 'email' ? (
+        <EmailPane
           i18n={i18n}
           lock={lock}
           forceInvalidVisibility={!showPassword}
           placeholder={emailInputPlaceholder}
         />
-      : <UsernamePane
+      ) : (
+        <UsernamePane
           i18n={i18n}
           lock={lock}
           placeholder={usernameInputPlaceholder}
           usernameStyle={usernameStyle}
           validateFormat={false}
-        />;
+        />
+      );
 
-    const passwordPane = showPassword
-      ? <PasswordPane i18n={i18n} lock={lock} placeholder={passwordInputPlaceholder} />
-      : null;
-
-    const dontRememberPassword = showForgotPasswordLink && hasScreen(lock, 'forgotPassword')
-      ? <p className="auth0-lock-alternative">
+    const dontRememberPassword =
+      showForgotPasswordLink && hasScreen(lock, 'forgotPassword') ? (
+        <p className="auth0-lock-alternative">
           <a
             className="auth0-lock-alternative-link"
-            href={forgotPasswordLink(lock, '#')}
+            href={forgotPasswordLink(lock, 'javascript:void(0)')}
             onClick={forgotPasswordLink(lock) ? undefined : ::this.handleDontRememberPasswordClick}
           >
             {forgotPasswordAction}
           </a>
         </p>
-      : null;
+      ) : null;
 
-    return <div>{header}{fieldPane}{passwordPane}{dontRememberPassword}</div>;
+    return (
+      <div>
+        {header}
+        {fieldPane}
+        <PasswordPane
+          i18n={i18n}
+          lock={lock}
+          placeholder={passwordInputPlaceholder}
+          hidden={!showPassword}
+        />
+        {dontRememberPassword}
+      </div>
+    );
   }
 }
 

@@ -18,6 +18,8 @@ import * as i18n from './i18n';
 
 import { go } from './sync';
 
+import css from '../css/index.styl';
+
 export default class Base extends EventEmitter {
   constructor(clientID, domain, options = {}, engine) {
     if (typeof clientID != 'string') {
@@ -41,11 +43,17 @@ export default class Base extends EventEmitter {
       'hash_parsed',
       'signin ready',
       'signup ready',
-
+      'socialOrPhoneNumber ready',
+      'socialOrEmail ready',
+      'vcode ready',
       'forgot_password ready',
       'forgot_password submit',
       'signin submit',
       'signup submit',
+      'signup error',
+      'socialOrPhoneNumber submit',
+      'socialOrEmail submit',
+      'vcode submit',
       'federated login'
     ];
 
@@ -107,9 +115,11 @@ export default class Base extends EventEmitter {
           contentProps: { i18n: i18nProp, model: m },
           disableSubmitButton: disableSubmitButton,
           error: l.globalError(m),
+          info: l.globalInfo(m),
           isMobile: l.ui.mobile(m),
           isModal: l.ui.appendContainer(m),
           isSubmitting: l.submitting(m),
+          language: l.ui.language(m),
           logo: l.ui.logo(m),
           primaryColor: l.ui.primaryColor(m),
           screenName: screen.name,
@@ -120,7 +130,7 @@ export default class Base extends EventEmitter {
           tabs: screen.renderTabs(m),
           terms: screen.renderTerms(m, i18nProp.html('signUpTerms')),
           title: getScreenTitle(m),
-          transitionName: screen.name === 'loading' ? 'fade' : 'horizontal-fade',
+          classNames: screen.name === 'loading' ? 'fade' : 'horizontal-fade',
           scrollGlobalMessagesIntoView: l.ui.scrollGlobalMessagesIntoView(m)
         };
         render(l.ui.containerID(m), props);
@@ -133,6 +143,12 @@ export default class Base extends EventEmitter {
             l.emitEvent(m, 'signup ready');
           } else if (screen.name === 'forgotPassword') {
             l.emitEvent(m, 'forgot_password ready');
+          } else if (screen.name === 'socialOrEmail') {
+            l.emitEvent(m, 'socialOrEmail ready');
+          } else if (screen.name === 'socialOrPhoneNumber') {
+            l.emitEvent(m, 'socialOrPhoneNumber ready');
+          } else if (screen.name === 'vcode') {
+            l.emitEvent(m, 'vcode ready');
           }
         }
         this.oldScreenName = screen.name;
@@ -159,11 +175,15 @@ export default class Base extends EventEmitter {
   }
 
   getProfile(token, cb) {
-    return webAPI.getProfile(this.id, token, cb);
+    return this.getUserInfo(token, cb);
   }
 
   getUserInfo(token, cb) {
     return webAPI.getUserInfo(this.id, token, cb);
+  }
+
+  checkSession(options, cb) {
+    return webAPI.checkSession(this.id, options, cb);
   }
 
   logout(query = {}) {
@@ -181,5 +201,24 @@ export default class Base extends EventEmitter {
   runHook(str, m, ...args) {
     if (typeof this.engine[str] != 'function') return m;
     return this.engine[str](m, ...args);
+  }
+}
+
+export function injectStyles() {
+  const styleId = 'auth0-lock-style';
+  let style = document.getElementById(styleId);
+
+  if (!style) {
+    const head = document.getElementsByTagName('head')[0];
+    style = document.createElement('style');
+    style.type = 'text/css';
+    style.setAttribute('id', styleId);
+    head.appendChild(style);
+  }
+
+  if (style.styleSheet) {
+    style.styleSheet.cssText = css;
+  } else {
+    style.innerHTML = css;
   }
 }

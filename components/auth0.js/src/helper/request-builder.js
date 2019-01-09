@@ -1,7 +1,7 @@
 /* eslint-disable no-param-reassign */
-var request = require('superagent');
-var base64Url = require('./base64_url');
-var version = require('../version');
+import request from 'superagent';
+import base64Url from './base64_url';
+import version from '../version';
 
 // ------------------------------------------------ RequestWrapper
 
@@ -64,11 +64,16 @@ RequestObj.prototype.end = function(cb) {
 function RequestBuilder(options) {
   this._sendTelemetry = options._sendTelemetry === false ? options._sendTelemetry : true;
   this._telemetryInfo = options._telemetryInfo || null;
+  this._timesToRetryFailedRequests = options._timesToRetryFailedRequests;
   this.headers = options.headers || {};
 }
 
 RequestBuilder.prototype.setCommonConfiguration = function(ongoingRequest, options) {
   options = options || {};
+
+  if (this._timesToRetryFailedRequests > 0) {
+    ongoingRequest = ongoingRequest.retry(this._timesToRetryFailedRequests);
+  }
 
   if (options.noHeaders) {
     return ongoingRequest;
@@ -86,6 +91,7 @@ RequestBuilder.prototype.setCommonConfiguration = function(ongoingRequest, optio
   if (this._sendTelemetry) {
     ongoingRequest = ongoingRequest.set('Auth0-Client', this.getTelemetryData());
   }
+
   return ongoingRequest;
 };
 
@@ -107,4 +113,4 @@ RequestBuilder.prototype.patch = function(url, options) {
   return new RequestObj(this.setCommonConfiguration(request.patch(url), options));
 };
 
-module.exports = RequestBuilder;
+export default RequestBuilder;

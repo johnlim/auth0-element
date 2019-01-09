@@ -60,6 +60,7 @@ function processDatabaseOptions(opts) {
     forgotPasswordLink,
     loginAfterSignUp,
     mustAcceptTerms,
+    showTerms,
     signUpLink,
     usernameStyle
   } = opts;
@@ -86,11 +87,15 @@ function processDatabaseOptions(opts) {
     mustAcceptTerms = undefined;
   }
 
+  if (!assertMaybeBoolean(opts, 'showTerms')) {
+    showTerms = true;
+  }
+
   if (!assertMaybeArray(opts, 'additionalSignUpFields')) {
     additionalSignUpFields = undefined;
   } else if (additionalSignUpFields) {
     additionalSignUpFields = additionalSignUpFields.reduce((r, x) => {
-      let { icon, name, options, placeholder, prefill, type, validator } = x;
+      let { icon, name, options, placeholder, prefill, type, validator, value } = x;
       let filter = true;
 
       const reservedNames = ['email', 'username', 'password'];
@@ -101,15 +106,17 @@ function processDatabaseOptions(opts) {
       ) {
         l.warn(
           opts,
-          `Ignoring an element of \`additionalSignUpFields\` because it does not contain valid \`name\` property. Every element of \`additionalSignUpFields\` must be an object with a \`name\` property that is a non-empty string consisting of letters, numbers and underscores. The following names are reserved, and therefore, cannot be used: ${reservedNames.join(', ')}.`
+          `Ignoring an element of \`additionalSignUpFields\` because it does not contain valid \`name\` property. Every element of \`additionalSignUpFields\` must be an object with a \`name\` property that is a non-empty string consisting of letters, numbers and underscores. The following names are reserved, and therefore, cannot be used: ${reservedNames.join(
+            ', '
+          )}.`
         );
         filter = false;
       }
 
-      if (typeof placeholder != 'string' || !placeholder) {
+      if (type !== 'hidden' && (typeof placeholder != 'string' || !placeholder)) {
         l.warn(
           opts,
-          'Ignoring an element of `additionalSignUpFields` because it does not contain a valid `placeholder` property. Every element of `additionalSignUpFields` must have a `placeholder` property that is a non-empty string.'
+          `Ignoring an element of \`additionalSignUpFields\` (${name}) because it does not contain a valid \`placeholder\` property. Every element of \`additionalSignUpFields\` must have a \`placeholder\` property that is a non-empty string.`
         );
         filter = false;
       }
@@ -134,11 +141,13 @@ function processDatabaseOptions(opts) {
         prefill = undefined;
       }
 
-      const types = ['select', 'text', 'checkbox'];
+      const types = ['select', 'text', 'checkbox', 'hidden'];
       if (type != undefined && (typeof type != 'string' || types.indexOf(type) === -1)) {
         l.warn(
           opts,
-          `When provided, the \`type\` property of an element of \`additionalSignUpFields\` must be one of the following strings: "${types.join('", "')}".`
+          `When provided, the \`type\` property of an element of \`additionalSignUpFields\` must be one of the following strings: "${types.join(
+            '", "'
+          )}".`
         );
         type = undefined;
       }
@@ -173,13 +182,20 @@ function processDatabaseOptions(opts) {
       ) {
         l.warn(
           opts,
-          'Ignoring an element of `additionalSignUpFields` because it has a "select" `type` but does not specify an `options` property that is an Array or a function.'
+          `Ignoring an element of \`additionalSignUpFields\` (${name}) because it has a "select" \`type\` but does not specify an \`options\` property that is an Array or a function.`
+        );
+        filter = false;
+      }
+      if (type === 'hidden' && !value) {
+        l.warn(
+          opts,
+          `Ignoring an element of \`additionalSignUpFields\` (${name}) because it has a "hidden" \`type\` but does not specify a \`value\` string.`
         );
         filter = false;
       }
 
       return filter
-        ? r.concat([{ icon, name, options, placeholder, prefill, type, validator }])
+        ? r.concat([{ icon, name, options, placeholder, prefill, type, validator, value }])
         : r;
     }, []);
 
@@ -189,7 +205,7 @@ function processDatabaseOptions(opts) {
   }
 
   // TODO: add a warning if it is not a boolean, leave it undefined,
-  // and change accesor fn.
+  // and change accessor fn.
   loginAfterSignUp = loginAfterSignUp === false ? false : true;
 
   return Map({
@@ -199,6 +215,7 @@ function processDatabaseOptions(opts) {
     initialScreen,
     loginAfterSignUp,
     mustAcceptTerms,
+    showTerms,
     screens,
     signUpLink,
     usernameStyle
@@ -279,7 +296,12 @@ export function defaultDatabaseConnectionName(m) {
 }
 
 export function databaseConnection(m) {
-  return defaultDirectory(m) || defaultDatabaseConnection(m) || l.connection(m, 'database');
+  return (
+    l.resolvedConnection(m) ||
+    defaultDirectory(m) ||
+    defaultDatabaseConnection(m) ||
+    l.connection(m, 'database')
+  );
 }
 
 export function databaseConnectionName(m) {
@@ -344,8 +366,15 @@ export function databaseLogInWithEmail(m) {
   return databaseUsernameStyle(m) === 'email';
 }
 
-export function databaseUsernameValue(m) {
-  return getFieldValue(m, databaseLogInWithEmail(m) ? 'email' : 'username');
+export function databaseUsernameValue(m, options = {}) {
+  const isEmailOnly = databaseLogInWithEmail(m);
+  if (isEmailOnly) {
+    return getFieldValue(m, 'email');
+  }
+  if (options.emailFirst) {
+    return getFieldValue(m, 'email') || getFieldValue(m, 'username');
+  }
+  return getFieldValue(m, 'username') || getFieldValue(m, 'email');
 }
 
 export function authWithUsername(m) {
@@ -374,6 +403,10 @@ export function additionalSignUpFields(m) {
   return get(m, 'additionalSignUpFields', List());
 }
 
+export function showTerms(m) {
+  return get(m, 'showTerms', true);
+}
+
 export function mustAcceptTerms(m) {
   return get(m, 'mustAcceptTerms', false);
 }
@@ -388,9 +421,14 @@ export function toggleTermsAcceptance(m) {
 
 export function resolveAdditionalSignUpFields(m) {
   return additionalSignUpFields(m).reduce((r, x) => {
-    return x.get('type') === 'select'
-      ? resolveAdditionalSignUpSelectField(r, x)
-      : resolveAdditionalSignUpTextField(r, x);
+    switch (x.get('type')) {
+      case 'select':
+        return resolveAdditionalSignUpSelectField(r, x);
+      case 'hidden':
+        return resolveAdditionalSignUpHiddenField(r, x);
+      default:
+        return resolveAdditionalSignUpTextField(r, x);
+    }
   }, m);
 }
 
@@ -458,4 +496,8 @@ function resolveAdditionalSignUpTextField(m, x) {
   }
 
   return m;
+}
+
+function resolveAdditionalSignUpHiddenField(m, x) {
+  return setField(m, x.get('name'), x.get('value'));
 }
