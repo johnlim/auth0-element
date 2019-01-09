@@ -12,7 +12,7 @@
     <style>
       :host {
         display: flex;
-        justify-content: space-around;
+        justify-content: flex-start;
         align-items: stretch;
       }
     </style>
@@ -113,7 +113,7 @@
           type: Object
         },
         logoutRedirectUri: {
-            value: window.location.href
+          value: window.location.href
         }
       },
       signIntoFirebase: function(token) {
@@ -131,4 +131,3 @@
     });
   </script>
 </dom-module>
-
