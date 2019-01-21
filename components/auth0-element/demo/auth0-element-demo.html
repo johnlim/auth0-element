@@ -97,12 +97,12 @@
                 },
                 scope: 'openid email',
                 redirectUri: window.location.href,
-                responseType: 'token',
+                responseType: 'token id_token',
                 connection: 'Username-Password-Authentication',
 
               },
-              allowedConnections: ['Username-Password-Authentication'],
-              closable: false
+              allowedConnections: ['Username-Password-Authentication', 'twitter'],
+              closable: false,
             }
           }
         },
